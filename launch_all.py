@@ -1,7 +1,7 @@
 import os
 
-message = lambda item : 'python3 main.py --analysis searchlight --mapping_model {} --mapping_direction decoding --input_target_model {} --experiment_id two --temporal_resolution 5 --semantic_category_one {} --semantic_category_two {} --data_kind erp --data_folder /import/cogsci/andrea/dataset/neuroscience/family_lexicon_eeg/ --searchlight_spatial_radius large_distance --searchlight_temporal_radius large --language {} --evaluation_method pairwise --average 24{}'.format(item[0], item[1], item[2], item[3], item[4], item[5])
-#message = lambda item : 'python3 main.py --analysis searchlight --mapping_model {} --mapping_direction encoding --input_target_model {} --experiment_id one --temporal_resolution 5 --semantic_category_one {} --semantic_category_two {} --data_kind higher_gamma --data_folder /import/cogsci/andrea/dataset/neuroscience/exploring_individual_entities_eeg --searchlight_spatial_radius large_distance --searchlight_temporal_radius large --language {} --average 24{}'.format(item[0], item[1], item[2], item[3], item[4], item[5])
+#message = lambda item : 'python3 main.py --analysis time_resolved --mapping_model {} --mapping_direction encoding --input_target_model {} --experiment_id two --temporal_resolution 5 --semantic_category_one {} --semantic_category_two {} --data_kind erp --data_folder /import/cogsci/andrea/dataset/neuroscience/family_lexicon_eeg/ --searchlight_spatial_radius large_distance --searchlight_temporal_radius large --language {} --evaluation_method correlation --average 24{}'.format(item[0], item[1], item[2], item[3], item[4], item[5])
+message = lambda item : 'python3 main.py --analysis time_resolved --mapping_model {} --mapping_direction encoding --input_target_model {} --experiment_id one --temporal_resolution 5 --semantic_category_one {} --semantic_category_two {} --data_kind erp --data_folder /import/cogsci/andrea/dataset/neuroscience/exploring_individual_entities_eeg --searchlight_spatial_radius large_distance --searchlight_temporal_radius large --language {} --evaluation_method correlation --average 24{}'.format(item[0], item[1], item[2], item[3], item[4], item[5])
 
 lang_agnostic = [
           'famous_familiar',
@@ -19,26 +19,26 @@ lang_agnostic = [
           ]
 models = [
           #'sentence_lengths',
-          #'individuals',
-          'famous_familiar',
+          'individuals',
+          #'famous_familiar',
           'coarse_category',
-          #'word_length',
+          'word_length',
           #'frequency',
-          #'log_frequency',
-          #'orthography',
+          'log_frequency',
+          'orthography',
           #'familiarity',
           #'imageability',
           #'gender',
           #'occupation',
           #'place_type',
           #'location',
-          #'w2v',
+          'w2v',
           #'wikipedia2vec_sentence_individuals',
           #'affective_individuals',
           #'xlm-roberta-large_individuals',
           #'w2v_sentence_individuals',
-          #'wikipedia2vec',
-          #'transe',
+          'wikipedia2vec',
+          'transe',
           #'perceptual_individuals',
           #'valence_individuals',
           #'arousal_individuals',
@@ -61,7 +61,7 @@ models = [
 
 languages = [
              'it', 
-             #'en'
+             'en'
              ]
 mappings = [
             #'ridge', 
@@ -73,21 +73,22 @@ corrections = [
                #''
                ]
 categories = [
-              #'place', 
-              #'person', 
+              'place', 
+              'person', 
               'all',
               ]
 categories_two = [
                   #'familiar', 
                   #'famous', 
-                  'all',
+                  #'all',
+                  'individual',
                   ]
 #categories_two = [
 #                  'all',
 #                  'individual',
 #                  ]
 plots = [
-         #' ', 
+         ' ', 
          ' --plot'
          ]
 
@@ -116,5 +117,6 @@ for model in models:
 
                         current_message = message([mapping, model, cat, category_two, lang, correc])
                         for plot in plots:
-                            os.system('{}{} --comparison'.format(current_message, plot))
+                            os.system('{}{}'.format(current_message, plot))
+                            #os.system('{}{} --comparison'.format(current_message, plot))
                             #os.system('{}{} --debugging'.format(current_message, plot))

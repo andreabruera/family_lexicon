@@ -11,7 +11,7 @@ from matplotlib import font_manager, pyplot
 from scipy import stats
 
 from general_utils import ColorblindPalette, colors_mapper, prepare_file, prepare_folder, read_colors, return_baseline
-from plotting.plot_violins import plot_violins
+#from plotting.plot_violins import plot_violins
 
 
 def check_statistical_significance(args, setup_data, times):

@@ -658,7 +658,7 @@ def colors_mapper():
 
 def read_colors(alt=False):
 
-    file_path = 'data/24.color.blindness.palette.txt'
+    file_path = 'data/12.color.blindness.palette.txt'
     assert os.path.exists(file_path)
     with open(file_path) as i:
         lines = [re.sub('\s+', r'\t', l.strip()).split('\t') for l in i.readlines()][10:]
