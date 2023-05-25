@@ -1,0 +1,49 @@
+# 24-color palette for deuteranopia color blindness - 18:05:40 Tue 19 May 2020 - Martin Krzywinski martink@bcgsc.ca - Methods and details: http://mkweb.bcgsc.ca/colorblind - Color names: http://mkweb.bcgsc.ca/colornames- Main palette colors are N-main with N-alt being (one of many) alternatives  that are indistinguishable to deuteranopes.
+color  1-main 003D30   0  61  48 sherwood green, zydeco, sherwood green, bottle green, msu green, everglade, phthalo green, dark green, deep teal, brunswick green
+color  1-alt  5A0A33  90  10  51 mulberry, mulberry wood, deep rose, lip service, deep cerise, nightclub, pompadour, imperial purple, tyrian purple, tawny port
+color  2-main 005745   0  87  69 filmpro pthalo green, deep turquoise, castleton green, sacramento state green, deep opal, aquamarine, jackpot, evening sea, dark aquamarine, dark spring green
+color  2-alt  810D49 129  13  73 rose bud cherry, red purple, disco, deep pink, wine, violet red, pansy purple, french plum, reddish purple, siren
+color  3-main 00735C   0 115  92 tropical rain forest, bingo, watercourse, robin hood, teal green, deep green cyan turquoise, deep sea, generic viridian, bangladesh green, bottle green
+color  3-alt  AB0D61 171  13  97 jazzberry jam, lipstick, deep magenta, dark fuchsia, violet red, scrumptious, strong rose, dark magenta, strong cerise, cranberry
+color  4-main 009175   0 145 117 observatory, elf green, gossamer, paolo veronese green, observatory, mother earth, illuminating emerald, niagara, sea green, gossamer
+color  4-alt  D80D7B 216  13 123 vivid cerise, deep pink, mexican pink, barbie pink, red purple, magenta, deep pink, cerise, deep cerise, violet red
+color  5-main 00AF8E   0 175 142 jungle green, green blue, jungle green, jeepers creepers, niagara, strong turquoise, dali, mint, mountain meadow, greeny blue
+color  5-alt  FF2E95 255  46 149 wild strawberry, violet red, deep pink, fluorescent pink, hot pink, deep pink, electric pink, magenta, strong pink, rose bonbon
+color  6-main 00CBA7   0 203 167 dali, aquamarine, shamrock, caribbean green, eucalyptus, shamrock, caribbean green, turquoise, medium aquamarine, mountain meadow
+color  6-alt  FF78AD 255 120 173 medium pink, medium pink, french pink, pale violet red, carnation pink, hot pink, tickle me pink, hot pink, pink, light brilliant raspberry
+color  7-main 00EBC1   0 235 193 aqua marine, aqua, vivid opal, bright teal, aquamarine, vivid turquoise, brilliant turquoise, luminous vivid opal, caribbean green, brilliant aquamarine
+color  7-alt  FFACC6 255 172 198 pale pink, carnation pink, nadeshiko pink, powder pink, carnation pink, soft pink, baby pink, amaranth pink, illusion, lavender pink
+color  8-main 86FFDE 134 255 222 light aqua, light turquoise, aquamarine, very light aquamarine, aquamarine, tiffany blue, very light turquoise, light brilliant turquoise, light brilliant opal, pale turquoise
+color  8-alt  FFD7E1 255 215 225 pig pink, pastel pink, light pink, piggy pink, pale pink, pink lace, pale pink, we peep, carousel pink, cherub
+color  9-main 00306F   0  48 111 submerge, astronaut, deep sapphire, confidante, madison, cool black, bay of many, deep cobalt blue, royal blue, darkish blue
+color  9-alt  460B70  70  11 112 royal purple, christalle, deep violet, windsor, blue diamond, persian indigo, paris m, deep purple, honey flower, meteorite
+color 10-main 00489E   0  72 158 elvis, tory blue, strong azure, medium teal blue, sapphire, flat medium blue, royal blue, endeavour, fun blue, cobalt
+color 10-alt  6B069F 107   6 159 purple, strong purple, strong mulberry, violet, purple, strong violet, grape, strong heliotrope, indigo, pigment indigo
+color 11-main 005FCC   0  95 204 flat medium blue, royal blue, science blue, sapphire, cerulean blue, medium teal blue, mariner, royal blue, vivid azure, denim
+color 11-alt  8E06CD 142   6 205 french violet, dark violet, violet dark, blue purple, blue violet, purple, purple, purple, vibrant purple, purple
+color 12-main 0079FA   0 121 250 clear blue, deep sky blue, azure, azure radiance, slate blue, luminous vivid azure, lightish blue, cerulean blue, blue, dodger blue
+color 12-alt  B40AFC 180  10 252 neon purple, bright violet, bright purple, electric purple, luminous vivid mulberry, electric purple, vivid orchid, luminous vivid purple, vivid violet, vivid purple
+color 13-main 009FFA   0 159 250 azure, luminous vivid cornflower blue, vivid cornflower blue, brilliant azure, bleu de france, dark sky blue, brilliant azure, united nations blue, light brilliant cobalt blue, cornflower
+color 13-alt  ED0DFD 237  13 253 famous, fuchsia, luminous vivid magenta, magenta, magenta / fuchsia, luminous vivid heliotrope, phlox, psychedelic purple, magenta, vivid magenta
+color 14-main 00C2F9   0 194 249 spiro disco ball, vivid sky blue, cyan, bright sky blue, capri, deep sky blue, luminous vivid cerulean, sky blue deep, deep sky blue, vivid cerulean
+color 14-alt  FF66FD 255 102 253 pink flamingo, light brilliant magenta, light magenta, blush pink, shocking pink, ultra pink, violet pink, light brilliant heliotrope, pink flamingo, light brilliant orchid
+color 15-main 00E5F8   0 229 248 aqua blue, medium turquoise, turquoise, luminous vivid arctic blue, turquoise, light brilliant arctic blue, robin's egg, bright light blue, brilliant arctic blue, brilliant cyan
+color 15-alt  FFA3FC 255 163 252 very light orchid, very light magenta, very light heliotrope, rich brilliant lavender, very light fuchsia, light magenta, light orchid, very light mulberry, light heliotrope, lavender rose
+color 16-main 7CFFFA 124 255 250 light brilliant cyan, electric blue, dark slate grey, very light cyan, very light opal, bright cyan, dark slate grey, brilliant cyan, light brilliant opal, bright light blue
+color 16-alt  FFD5FD 255 213 253 pale mauve, very light purple, shampoo, french lilac, pale lavender, classic rose, thistle, thistle, very pale magenta, pink lace
+color 17-main 004002   0  64   2 forest green, hunter green, dark fern, fern, british racing green, racing green, darkgreen, forrest green, bottle green, crusoe
+color 17-alt  5F0914  95   9  20 deep amaranth, deep crimson, claret, madam m, dark tan, heath, deep reddish brown, cherrywood, volcano, persian plum
+color 18-main 005A01   0  90   1 deep green, deep sap green, deep harlequin, san felix, dark green, deep emerald green, lincoln green, deep green, deep green, dark green
+color 18-alt  86081C 134   8  28 hot chile, monarch, western red, pohutukawa, burgundy, paprika, burgundy, code red, red devil, up maroon
+color 19-main 007702   0 119   2 ao, green, office green, web green, sap green, napier green, tree green, bilbao, india green, la palma
+color 19-alt  B20725 178   7  37 smashing, red pepper, alabama crimson, indian red, poppy, lipstick red, upsdell red, del toro, red tape, crimson glory
+color 20-main 009503   0 149   3 true green, islamic green, green, strong emerald green, india green, strong malachite green, grass green, strong harlequin, emerald green, grassy green
+color 20-alt  DE0D2E 222  13  46 geranium lake, medium candy apple red, alizarin crimson, rose madder, imperial red, red, madder lake deep, amaranth red, vivid crimson, deep carmine pink
+color 21-main 00B408   0 180   8 green, strong green, strong sap green, strong emerald green, permanent green, strong harlequin, kelly green, lime green, harlequin green, vivid malachite
+color 21-alt  FF4235 255  66  53 red orange, firebrick, big bang, firebrick, brown, coral red, light brilliant red, sunset orange, tomato, orangey red
+color 22-main 00D302   0 211   2 green, vibrant green, vivid emerald green, vivid sap green, vivid malachite green, vivid harlequin, vivid green, vivid pistachio, permanent green, green apple
+color 22-alt  FF8735 255 135  53 crusta, chocolate, chocolate, shirley temple, vivid tangelo, tango, dusty orange, cadmium orange, mango tango, orangeish
+color 23-main 00F407   0 244   7 green, radioactive green, electric green, highlighter green, hot green, neon green, luminous vivid emerald green, poison green, vivid green, neon green
+color 23-alt  FFB935 255 185  53 filmpro golden yellow, rubber duck, supernova, squash, fuel yellow, my sin, macaroni and cheese, buttercup, goldenrod, dark goldenrod
+color 24-main AFFF2A 175 255  42 green yellow, lime, lemon green, spring bud, electric lime, lemon lime, green lizard, french lime, yellowgreen, luminous vivid spring bud
+color 24-alt  FFE239 255 226  57 banana yellow, gorse, shooting star, sun yellow, filmpro lemon yellow, golden dream, gargoyle gas, lemon, ripe lemon, bright lights

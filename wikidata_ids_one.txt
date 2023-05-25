@@ -1,0 +1,41 @@
+entity	wikidata_id
+politico	Q82955
+Silvio Berlusconi	Q11860
+Barack Obama	Q76
+Hillary Clinton	Q6294
+Vladimir Putin	Q7747
+scrittore	Q36180
+Sigmund Freud	Q9215
+J.K. Rowling	Q34660
+Ernest Hemingway	Q23434
+William Shakespeare	Q692
+musicista	Q639669
+Freddie Mercury	Q15869
+Bob Dylan	Q392
+Madonna	Q1744	
+Wolfgang Amadeus Mozart	Q254
+attore	Q33999
+Quentin Tarantino	Q3772
+Scarlett Johansson	Q34436
+Marylin Monroe	Q4616
+Woody Allen	Q25089
+stato	Q6256
+Spagna	Q29
+Israele	Q801
+Germania	Q183
+Regno Unito	Q145
+città	Q515
+Roma	Q220
+Parigi	Q90
+New York	Q60
+Amsterdam	Q727
+corso d'acqua	Q15324
+Mar Mediterraneo	Q4918
+Oceano Atlantico	Q97
+Nilo	Q3392
+Oceano Pacifico	Q98
+monumento	Q4989906
+Torre di Pisa	Q39054
+Stonehenge	Q39671
+Sagrada Familia	Q48435
+Macchu Picchu	Q676203
