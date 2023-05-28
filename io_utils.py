@@ -169,8 +169,8 @@ class ExperimentInfo:
         if self.experiment_id == 'one':
             if self.semantic_category_two == 'individual':
                 trig_to_info = {k : v for k, v in trig_to_info.items() if k<=100}
-            else:
-                raise RuntimeError('for the time being we leave these out...')
+            elif self.semantic_category_two == 'category':
+                trig_to_info = {k : v for k, v in trig_to_info.items() if k>100}
 
         return full_log, trig_to_info
 

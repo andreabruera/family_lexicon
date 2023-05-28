@@ -225,12 +225,12 @@ def load_vectors(args, experiment, n, clustered=False):
         #    vectors = {l[0] : numpy.array(l[1], dtype=numpy.float64) for l in lines}
         ### reading file
         with open(os.path.join(
-                               'models', 
+                               'all_models', 
                                'exp_{}_{}_wikipedia_full_corpus_{}_ratings.tsv'.format(args.experiment_id, args.input_target_model, args.language),
                               )) as i:
             lines = [l.strip().split('\t') for l in i.readlines()][1:]
         vectors = {l[0] : float(l[1]) for l in lines}
-        vectors = minus_one_one_norm(vectors)
+        vectors = minus_one_one_norm(vectors.items())
     elif args.input_target_model in ['sentence_lengths']: 
         ### reading file
         with open(os.path.join(
@@ -258,7 +258,7 @@ def load_vectors(args, experiment, n, clustered=False):
                              ]:
         ### reading file
         with open(os.path.join(
-                               'models', 
+                               'all_models', 
                                'exp_{}_{}_{}_vectors.tsv'.format(args.experiment_id, args.input_target_model, args.language),
                               )) as i:
             lines = [l.strip().split('\t') for l in i.readlines()][1:]
@@ -269,13 +269,17 @@ def load_vectors(args, experiment, n, clustered=False):
     elif 'gold' in args.input_target_model or 'individuals' in args.input_target_model or 'model' in args.input_target_model or 'random' in args.input_target_model or '_all' in args.input_target_model or '_one' in args.input_target_model:
         ### reading file
         file_path = os.path.join(
-                               'models', 
+                               'all_models', 
                                #'exp_{}_{}_{}_average_{}_entity_articles_limit_1seventh_vectors.tsv'.format(args.experiment_id, args.input_target_model, args.language, args.average))
                                #'exp_{}_{}_{}_average_{}_entity_articles_limit_1fifth_vectors.tsv'.format(args.experiment_id, args.input_target_model, args.language, args.average))
                                #'exp_{}_{}_{}_average_{}_entity_articles_limit_1fourth_vectors.tsv'.format(args.experiment_id, args.input_target_model, args.language, args.average))
                                'exp_{}_{}_{}_average_{}_entity_articles_limit_all_vectors.tsv'.format(args.experiment_id, args.input_target_model, args.language, args.average))
         #if args.input_target_model in ['BERT_large_individuals', 'ITGPT2_individuals', 'xlm-roberta-large_individuals']:
-        file_path = file_path.replace('articles', 'sentences')
+        if args.experiment_id == 'two':
+            file_path = file_path.replace('articles', 'sentences')
+        if args.experiment_id == 'one':
+            file_path = file_path.replace('entity_articles', 'full_corpus')
+
         #file_path = file_path.replace('limit_20', 'exp')
         print(file_path)
         if args.average == -36:
@@ -301,18 +305,21 @@ def load_vectors(args, experiment, n, clustered=False):
         #distances = [1 - scipy.stats.pearsonr(vectors[n], vectors[n_two])[0] for n in names for n_two in names if n!=n_two]
         #corr = scipy.stats.pearsonr(lengths, distances)
         #print('correlation model - length: {}'.format(corr))
-    for idx, cat in [(2, 'famous/familiar'), (1, 'person/place')]:
-        famous_familiar = {v[0] : 0 if v[idx] in ['famous', 'person'] else 1 for v in experiment.trigger_to_info.values()}
-        keyz = sorted(set(famous_familiar.keys()) & set(vectors.keys()))
-        assert len(keyz) == 32
-        #print(len(keyz))
-        fam_fam_sims = [1 if famous_familiar[one]==famous_familiar[two] else 0 for one in keyz for two in keyz if one!=two] 
-        if type(vectors[keyz[0]]) in [int, float, numpy.float64] or vectors[keyz[0]].shape == (1, ):
-            model_sims = [1-abs(float(vectors[one])-float(vectors[two])) for one in keyz for two in keyz if one!=two] 
-        else:
-            model_sims = [scipy.stats.pearsonr(vectors[one], vectors[two])[0] for one in keyz for two in keyz if one!=two] 
-        corr = scipy.stats.pearsonr(fam_fam_sims, model_sims)
-        print('correlation with {} distinction: {}'.format(cat, corr))
+    if args.experiment_id == 'one' and args.semantic_category_two != 'individual':
+        pass
+    else:
+        for idx, cat in [(2, 'famous/familiar'), (1, 'person/place')]:
+            famous_familiar = {v[0] : 0 if v[idx] in ['famous', 'person'] else 1 for v in experiment.trigger_to_info.values()}
+            keyz = sorted(set(famous_familiar.keys()) & set(vectors.keys()))
+            assert len(keyz) == 32
+            #print(len(keyz))
+            fam_fam_sims = [1 if famous_familiar[one]==famous_familiar[two] else 0 for one in keyz for two in keyz if one!=two] 
+            if type(vectors[keyz[0]]) in [int, float, numpy.float64] or vectors[keyz[0]].shape == (1, ):
+                model_sims = [1-abs(float(vectors[one])-float(vectors[two])) for one in keyz for two in keyz if one!=two] 
+            else:
+                model_sims = [scipy.stats.pearsonr(vectors[one], vectors[two])[0] for one in keyz for two in keyz if one!=two] 
+            corr = scipy.stats.pearsonr(fam_fam_sims, model_sims)
+            print('correlation with {} distinction: {}'.format(cat, corr))
 
     return vectors
 

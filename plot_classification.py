@@ -123,7 +123,7 @@ def read_files(args, subjects):
         ### Plotting times until t_max
         #t_min = -.05
         t_min = -.01
-        t_max = .85
+        t_max = .85 if args.experiment_id == 'two' else 1.25
         #t_max = 1.2
         #if args.experiment_id == 'one':
         #    t_max = 1.2
@@ -274,12 +274,20 @@ def plot_classification(args):
             ax[0].set_ylim(bottom=ymin, top=ymax)
 
     if args.evaluation_method == 'correlation':
-        if args.semantic_category_one == args.semantic_category_two:
-            ymin = -.05
-            ymax = .13
+        if args.experiment_id == 'one':
+            if args.semantic_category_one == args.semantic_category_two:
+                ymin = -.05
+                ymax = .06
+            else:
+                ymin = -.05
+                ymax = .11
         else:
-            ymin = -.05
-            ymax = .25
+            if args.semantic_category_one == args.semantic_category_two:
+                ymin = -.05
+                ymax = .13
+            else:
+                ymin = -.05
+                ymax = .25
         ax[0].set_ylim(bottom=ymin, top=ymax)
 
     ### Plotting when stimulus appears and disappears
