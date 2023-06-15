@@ -251,10 +251,16 @@ def group_searchlight(args):
         title = '{} - {}, p<={}'.format(title, correction, significance)
 
         if args.evaluation_method == 'correlation':
-            if args.comparison:
-                vmax = 0.05
+            if args.semantic_category_one == args.semantic_category_two:
+                if args.comparison:
+                    vmax = 0.05
+                else:
+                    vmax = 0.1
             else:
-                vmax = 0.1
+                if args.comparison:
+                    vmax = 0.05
+                else:
+                    vmax = 0.12
         else:
             if args.comparison:
                 vmax = 0.1

@@ -77,79 +77,32 @@ def load_vectors(args, experiment, n, clustered=False):
     elif args.input_target_model in ['coarse_category', 'famous_familiar', 'fine_category']:
         if args.input_target_model == 'coarse_category':
             categories = {v[0] : v[1] for v in experiment.trigger_to_info.values()}
+            sorted_categories = sorted(set(categories.values()))
         elif args.input_target_model == 'famous_familiar':
             if args.experiment_id == 'one':
                 raise RuntimeError('There is no famous_familiar distinction for this experiment!')
             categories = {v[0] : v[2] for v in experiment.trigger_to_info.values()}
+            sorted_categories = sorted(set(categories.values()))
         elif args.input_target_model == 'fine_category':
             if args.experiment_id == 'two':
                 raise RuntimeError('There is no famous_familiar distinction for this experiment!')
             categories = {v[0] : v[2] for v in experiment.trigger_to_info.values()}
+            people_categories = {v[0] : v[2] for v in experiment.trigger_to_info.values() if v[1]=='person'}
+            sorted_people_categories = sorted(set(people_categories.values()))
+            place_categories = {v[0] : v[2] for v in experiment.trigger_to_info.values() if v[1]=='place'}
+            sorted_place_categories = sorted(set(place_categories.values()))
+            sorted_categories = sorted_people_categories + sorted_place_categories
         #vectors = {k_one : numpy.array([0. if categories[k_one]==categories[k_two] else 1. for k_two in names if k_one != k_two]) for k_one in names}
-        sorted_categories = sorted(set(categories.values()))
         vectors = {w : sorted_categories.index(categories[w]) for w in names}
-
-    elif args.input_target_model == 'occupation':
-        mapper = {
-        'Barack Obama' : 0,	
-        'Hillary Clinton' : 0,
-        'Sigmund Freud' : 1,
-        'J.K. Rowling' : 1,
-        'Freddie Mercury' : 2,
-        'Britney Spears' : 2,
-        'Robert De Niro' : 3,
-        'Scarlett Johansson' : 3,
-        }
-        vectors = {n : mapper[n] for n in names}
-        vectors = minus_one_one_norm(vectors)
-
-    elif args.input_target_model == 'gender':
-        mapper = {
-        'Barack Obama' : 0,	
-        'Hillary Clinton' : 1,
-        'Sigmund Freud' : 0,
-        'J.K. Rowling' : 1,
-        'Freddie Mercury' : 0,
-        'Britney Spears' : 1,
-        'Robert De Niro' : 0,
-        'Scarlett Johansson' : 1,
-        }
-        vectors = {n : mapper[n] for n in names}
-
-    elif args.input_target_model == 'location':
-        mapper = {
-        'Israele' : (31.677000, 35.210782),
-        'Sud Africa' : (-33.938822, 19.340373),
-        'New York' : (40.689861, -74.049757),
-        'Rio De Janeiro' : (-22.942975, -43.124676),
-        'Cascate del Niagara' : (43.073389, -79.068542),
-        'Mar dei Caraibi': (15.373715, -77.315380),
-        'Muraglia Cinese' : (40.431753, 116.570514),
-        'Piramidi di Giza' : (29.978600, 31.131793),
-        'Machu Picchu' : (-13.226717, -72.497461),
-        'Canada' : (58.231512, -108.206522),
-        }
-        vectors = {n : numpy.array(mapper[n], dtype=numpy.float64) for n in names}
-
-    elif args.input_target_model == 'place_type':
-        mapper = {
-        'Israele' : 0,
-        'Sud Africa' : 0,
-        'New York' : 1,
-        'Rio De Janeiro' : 1,
-        'Cascate del Niagara' : 2,
-        'Mar dei Caraibi': 2,
-        'Muraglia Cinese' : 3,
-        'Piramidi di Giza' : 3,
-        'Machu Picchu' : 3,
-        'Canada' : 0
-        }
-        vectors = {n : mapper[n] for n in names}
-        vectors = minus_one_one_norm(vectors)
+        vectors = minus_one_one_norm(vectors.items())
 
     elif args.input_target_model == 'individuals':
         if args.experiment_id == 'one':
-            vectors = {k : k_i for k_i, k in enumerate(names)}
+            sorted_infos = [experiment.trigger_to_info[k] for k in sorted(experiment.trigger_to_info.keys())]
+            people = [v[0] for v in sorted_infos if v[1]=='person']
+            places = [v[0] for v in sorted_infos if v[1]=='place']
+            ordered_names = people + places
+            vectors = {k : k_i for k_i, k in enumerate(ordered_names)}
         else:
             coarse = {v[0] : v[1] for v in experiment.trigger_to_info.values()}
             fame = {v[0] : v[2] for v in experiment.trigger_to_info.values()}
@@ -161,39 +114,21 @@ def load_vectors(args, experiment, n, clustered=False):
         vectors = minus_one_one_norm(vectors.items())
 
     elif args.input_target_model == 'word_length':
-        #lengths = [len(w) for w in names]
-        #vectors = {k_one : numpy.array([abs(l_one-l_two) for k_two, l_two in zip(names, lengths) if k_two!=k_one]) for k_one, l_one in zip(names, lengths)}
         vectors = {w : len(w) for w in names}
         vectors = minus_one_one_norm(vectors.items())
+
     elif args.input_target_model == 'syllables':
         vectors = {w : sum([syllables.estimate(part) for part in w.split()]) for w in names}
         vectors = minus_one_one_norm(vectors.items())
 
     elif args.input_target_model == 'orthography':
-        ### vector of differences
-        #vectors = {k_one : numpy.array([levenshtein(k_one,k_two) for k_two in names if k_two!=k_one]) for k_one in names}
-        ### average of differences
         vectors = {k_one : numpy.average([levenshtein(k_one,k_two) for k_two in names if k_two!=k_one]) for k_one in names}
         vectors = minus_one_one_norm(vectors.items())
 
     elif args.input_target_model in ['imageability', 'familiarity']:
-
         fams = list()
-        if args.experiment_id == 'two' and args.semantic_category_two == 'familiar':
-            ### considering length of documents as familiarity index
-            fams_dict = dict()
-            sent_folder = os.path.join('personally_familiar_sentences')
-            sub_marker = 'sub-{:02}'.format(n)
-            for f in os.listdir(sent_folder):
-                if sub_marker in f:
-                    f_path = os.path.join(sent_folder, f)
-                    with open(f_path) as i:
-                        words = [w for l in i.readlines() for w in l.split()]
-                    fam_name = re.sub(r'{}_|\.sentences'.format(sub_marker), '', f)
-                    fams_dict[fam_name.replace('_', ' ').replace('89 1', '89/1').strip()] = len(words)
-            for name in names:
-                assert name in fams_dict.keys()
-            fams = [fams_dict[n] for n in names]
+        if args.experiment_id == 'two':
+            raise RuntimeError('For this experiment familiarity is called sentence_lengths')
         else:
             filename = os.path.join('lab','stimuli',
                                     '{}_ratings_experiment.csv'.format(args.input_target_model))
@@ -216,25 +151,10 @@ def load_vectors(args, experiment, n, clustered=False):
         vectors = {k_one : l_one for k_one, l_one in zip(names, fams)}
         vectors = minus_one_one_norm(vectors)
 
-    elif 'frequency' in args.input_target_model:
-        #with open('frequencies_full_wiki.tsv') as i:
-        #    lines = [l.strip().split('\t') for l in i.readlines()][1:]
-        #if args.input_target_model == 'log_frequency':
-        #    vectors = {l[0] : numpy.array(l[2], dtype=numpy.float64) for l in lines}
-        #else:
-        #    vectors = {l[0] : numpy.array(l[1], dtype=numpy.float64) for l in lines}
-        ### reading file
-        with open(os.path.join(
-                               'all_models', 
-                               'exp_{}_{}_wikipedia_full_corpus_{}_ratings.tsv'.format(args.experiment_id, args.input_target_model, args.language),
-                              )) as i:
-            lines = [l.strip().split('\t') for l in i.readlines()][1:]
-        vectors = {l[0] : float(l[1]) for l in lines}
-        vectors = minus_one_one_norm(vectors.items())
     elif args.input_target_model in ['sentence_lengths']: 
         ### reading file
         with open(os.path.join(
-                               'models', 
+                               'all_models', 
                                'exp_{}_{}_{}_ratings.tsv'.format(args.experiment_id, args.input_target_model, args.language),
                               )) as i:
             lines = [l.strip().split('\t') for l in i.readlines()]
@@ -242,9 +162,15 @@ def load_vectors(args, experiment, n, clustered=False):
             assert len(l) == 3
         vectors = {l[1] : float(l[2]) for l in lines if int(l[0]) == n}
         vectors = minus_one_one_norm(vectors.items())
-        #for k, v in vectors.items():
-        #    #print(v.shape)
-        #    #assert v.shape in [(300, ), (1024, ), (1280,), (768,), (1600,), (500,), (100,)]
+
+    elif 'frequency' in args.input_target_model:
+        with open(os.path.join(
+                               'all_models', 
+                               'exp_{}_{}_wikipedia_full_corpus_{}_ratings.tsv'.format(args.experiment_id, args.input_target_model, args.language),
+                              )) as i:
+            lines = [l.strip().split('\t') for l in i.readlines()][1:]
+        vectors = {l[0] : float(l[1]) for l in lines}
+        vectors = minus_one_one_norm(vectors.items())
 
     elif args.input_target_model in [ 
                                'ITGPT2', 
@@ -266,6 +192,7 @@ def load_vectors(args, experiment, n, clustered=False):
         for k, v in vectors.items():
             #print(v.shape)
             assert v.shape in [(300, ), (1024, ), (1280,), (768,), (1600,), (500,), (100,)]
+
     elif 'gold' in args.input_target_model or 'individuals' in args.input_target_model or 'model' in args.input_target_model or 'random' in args.input_target_model or '_all' in args.input_target_model or '_one' in args.input_target_model:
         ### reading file
         file_path = os.path.join(
@@ -328,6 +255,7 @@ def zero_one_norm(vectors):
     values = [(v - min(values))/(max(values)-min(values)) for v in values]
     vectors = {k[0] : val for k, val in zip(vectors.items(), values)}
     return vectors
+
 def minus_one_one_norm(vectors):
     labels = [k[1] for k in vectors]
     names = [k[0] for k in vectors]

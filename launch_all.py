@@ -1,11 +1,12 @@
 import os
 
 #message = lambda item : 'python3 main.py --analysis time_resolved --mapping_model {} --mapping_direction encoding --input_target_model {} --experiment_id two --temporal_resolution 5 --semantic_category_one {} --semantic_category_two {} --data_kind erp --data_folder /import/cogsci/andrea/dataset/neuroscience/family_lexicon_eeg/ --searchlight_spatial_radius large_distance --searchlight_temporal_radius large --language {} --evaluation_method correlation --average 24{}'.format(item[0], item[1], item[2], item[3], item[4], item[5])
-message = lambda item : 'python3 main.py --analysis searchlight --mapping_model {} --mapping_direction encoding --input_target_model {} --experiment_id one --temporal_resolution 5 --semantic_category_one {} --semantic_category_two {} --data_kind erp --data_folder /import/cogsci/andrea/dataset/neuroscience/exploring_individual_entities_eeg --searchlight_spatial_radius large_distance --searchlight_temporal_radius large --language {} --evaluation_method correlation --average 24{}'.format(item[0], item[1], item[2], item[3], item[4], item[5])
+message = lambda item : 'python3 main.py --analysis time_resolved --mapping_model {} --mapping_direction decoding --input_target_model {} --experiment_id one --temporal_resolution 5 --semantic_category_one {} --semantic_category_two {} --data_kind erp --data_folder /import/cogsci/andrea/dataset/neuroscience/exploring_individual_entities_eeg --searchlight_spatial_radius large_distance --searchlight_temporal_radius large --language {} --evaluation_method pairwise --average 24{}'.format(item[0], item[1], item[2], item[3], item[4], item[5])
 
 lang_agnostic = [
           'famous_familiar',
           'coarse_category',
+          'fine_category',
           'orthography',
           'familiarity',
           'imageability',
@@ -18,23 +19,29 @@ lang_agnostic = [
           #'transe',
           ]
 models = [
-          'w2v',
+          'fine_category',
+          #'w2v',
+          #'xlm-roberta-large_individuals',
+          #'wikipedia2vec',
+          #'transe',
+          #'BERT_large_individuals',
+          'coarse_category',
+          'word_length',
+          #'log_frequency',
+          'orthography',
+
           #'wikipedia2vec_sentence_individuals',
           #'affective_individuals',
-          'xlm-roberta-large_individuals',
           #'w2v_sentence_individuals',
-          'wikipedia2vec',
-          'transe',
           #'perceptual_individuals',
           #'valence_individuals',
           #'arousal_individuals',
           #'concreteness_individuals',
           #'imageability_individuals',
-          'ITGPT2_individuals',
+          #'ITGPT2_individuals',
           #'xlm-roberta-large_all',
           #'xlm-roberta-large_one',
-          'BERT_large_individuals',
-          'gpt2-large_individuals',
+          #'gpt2-large_individuals',
           #'ITGPT2_random',
           #'xlm-roberta-large_random',
           #'BERT_large_random',
@@ -44,13 +51,9 @@ models = [
           #'BERT_large_model_300-500ms',
           #'gpt2-large_model_300-500ms',
           #'sentence_lengths',
-          'individuals',
           #'famous_familiar',
-          'coarse_category',
-          'word_length',
+          #'individuals',
           #'frequency',
-          'log_frequency',
-          'orthography',
           #'familiarity',
           #'imageability',
           #'gender',
@@ -65,12 +68,12 @@ languages = [
              ]
 mappings = [
             #'ridge', 
-            'rsa'
-            #'support_vector',
+            #'rsa'
+            'support_vector',
             ]
 corrections = [
                ' --corrected', 
-               #''
+               ''
                ]
 categories = [
               'place', 
@@ -81,7 +84,7 @@ categories_two = [
                   #'familiar', 
                   #'famous', 
                   #'all',
-                  #'individual',
+                  'individual',
                   'category',
                   ]
 #categories_two = [

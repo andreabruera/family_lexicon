@@ -18,16 +18,19 @@ def return_baseline(args):
     if args.mapping_direction == 'correlation' or args.evaluation_method == 'correlation':
         random_baseline=0.
     else:
+        '''
         if args.experiment_id == 'one':
             if args.input_target_model == 'fine_category':
-                if args.semantic_category_one != 'all':
-                    random_baseline = 0.25
-                else:
+                if args.semantic_category_one == 'all':
                     random_baseline = 0.125
+                else:
+                    random_baseline = 0.25
             else:
                 random_baseline = 0.5
         elif args.experiment_id == 'two':
             random_baseline = 0.5
+        '''
+        random_baseline = 0.5
 
     return random_baseline
 
@@ -434,7 +437,7 @@ def split_train_test(args, split, eeg, experiment, comp_vectors):
 
     return train_true, test_true, train_samples, test_samples, train_lengths, test_lengths
 
-def correct_for_length(train_true, train_lengths, test_true, test_lengths):
+def correct_for_length(args, train_true, train_lengths, test_true, test_lengths):
     '''
     ### only train
     cfr = ConfoundRegressor(confound=train_lengths, X=train_true.copy())
@@ -538,7 +541,7 @@ def evaluation_round(args, experiment, current_eeg, comp_vectors):
                 continue
         ### regress out word_length
         if args.corrected:
-            train_true, test_true = correct_for_length(train_true, train_lengths, test_true, test_lengths)
+            train_true, test_true = correct_for_length(args, train_true, train_lengths, test_true, test_lengths)
 
         ### transforming model
         if args.mapping_model == 'rsa':
@@ -577,15 +580,13 @@ def prepare_folder(args):
                             args.experiment_id, 
                             args.data_kind, 
                             args.analysis,
-                            args.mapping_model,
+                            '{}_{}'.format(args.mapping_model, args.evaluation_method),
                             args.mapping_direction,
                             '{}ms'.format(args.temporal_resolution),
                             'average_{}'.format(args.average),
                             args.semantic_category_one,
                             args.semantic_category_two,
                              )
-    if args.evaluation_method == 'correlation':
-        out_path = out_path.replace(args.mapping_model, '{}_{}'.format(args.mapping_model, args.evaluation_method))
     os.makedirs(out_path, exist_ok=True)
 
     return out_path
