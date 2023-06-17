@@ -238,7 +238,10 @@ def load_vectors(args, experiment, n, clustered=False):
         for idx, cat in [(2, 'famous/familiar'), (1, 'person/place')]:
             famous_familiar = {v[0] : 0 if v[idx] in ['famous', 'person'] else 1 for v in experiment.trigger_to_info.values()}
             keyz = sorted(set(famous_familiar.keys()) & set(vectors.keys()))
-            assert len(keyz) == 32
+            if args.experiment_id == 'one':
+                assert len(keyz) == 40
+            else:
+                assert len(keyz) == 32
             #print(len(keyz))
             fam_fam_sims = [1 if famous_familiar[one]==famous_familiar[two] else 0 for one in keyz for two in keyz if one!=two] 
             if type(vectors[keyz[0]]) in [int, float, numpy.float64] or vectors[keyz[0]].shape == (1, ):

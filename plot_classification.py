@@ -27,9 +27,10 @@ def check_statistical_significance(args, setup_data, times):
                          alternative='greater').pvalue
     '''
     #lower_limit = 0.2 if args.experiment_id == 'two' else 0.1
-    lower_limit = 0.2
-    upper_limit = 0.8 if args.experiment_id == 'two' else 1.2
-    #upper_limit = 1. if args.experiment_id == 'two' else 1.2
+    lower_limit = .2
+    upper_limit = 1.
+    #upper_limit = 0.8 if args.experiment_id == 'two' else 1.
+    #upper_limit = .8 if args.experiment_id == 'two' else 1.2
     #lower_limit = 0.3 if args.experiment_id == 'two' else 0.3
     #upper_limit = 1.2 if args.experiment_id == 'two' else 1.2
     lower_indices = [t_i for t_i, t in enumerate(times) if t<lower_limit]
@@ -123,8 +124,8 @@ def read_files(args, subjects):
         ### Plotting times until t_max
         #t_min = -.05
         t_min = -.01
-        t_max = .85 if args.experiment_id == 'two' else 1.25
-        #t_max = 1.2
+        #t_max = .85 if args.experiment_id == 'two' else 1.25
+        t_max = 1.25
         #if args.experiment_id == 'one':
         #    t_max = 1.2
         #else:

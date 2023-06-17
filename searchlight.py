@@ -6,44 +6,7 @@ import scipy
 from scipy import stats
 from tqdm import tqdm
 from general_utils import prepare_folder
-
-def write_plot_searchlight(args, n, explicit_times, results_array):
-
-    output_folder = prepare_folder(args)
-
-    if 'classification' in args.analysis:
-        input_file = os.path.join(output_folder, 
-                  'sub-{:02}.rsa'.format(n))
-    else:
-        input_file = os.path.join(output_folder,
-                  '{}_sub-{:02}.rsa'.format(args.input_target_model, n))
-
-    ### adding information about cluster_size
-    input_file = input_file.replace('.rsa', '_spatial_{}_temporal_{}.rsa'.format(args.searchlight_spatial_radius, args.searchlight_temporal_radius))
-
-    with open(input_file, 'w') as o:
-        for t in explicit_times:
-            o.write('{}\t'.format(t))
-        o.write('\n')
-        for e in results_array:
-            for t in e:
-                o.write('{}\t'.format(t))
-            o.write('\n')
-
-def join_searchlight_results(results, relevant_times):
-
-    results_array = list()
-    results_dict = {r[0] : r[1] for r in results}
-
-    for e in range(128):
-        e_row = list()
-        for t in relevant_times:
-            e_row.append(results_dict[(e, t)])
-        results_array.append(e_row)
-
-    results_array = numpy.array(results_array)
-
-    return results_array
+from time_resolved import evaluation_round
 
 class SearchlightClusters:
 
@@ -69,6 +32,11 @@ class SearchlightClusters:
         self.code_to_index = {v : k for k,v in self.index_to_code.items()}
         self.neighbors = self.read_searchlight_clusters()
         self.mne_adjacency_matrix = self.create_adjacency_matrix()
+
+        self.tmin = -.1
+        self.tmax = 1.2
+        self.time_step = 10000
+        self.relevant_times = list(range(int(self.tmin*self.time_step), int(self.tmax*self.time_step), self.time_radius))
 
     def create_adjacency_matrix(self):
         data = list()
@@ -113,3 +81,47 @@ class SearchlightClusters:
                     searchlight_clusters[l[0]] = l
 
         return searchlight_clusters
+
+def searchlight(all_args):
+
+    args = all_args[0]
+    all_eeg = all_args[1]
+    comp_vectors = all_args[2]
+    eeg = all_args[3]
+    experiment = all_args[4]
+    places = all_args[5]
+    time = all_args[6]
+    searchlight_clusters = all_args[7]
+
+    start_time = min([t_i for t_i, t in enumerate(all_eeg.times) if t>(time/searchlight_clusters.time_step)])
+    end_time = max([t_i for t_i, t in enumerate(all_eeg.times) if t<=(time+searchlight_clusters.time_radius)/searchlight_clusters.time_step])+1
+    #print([start_time, end_time])
+    current_eeg = {k : v[places, start_time:end_time].flatten() for k, v in eeg.items()}
+    corr = evaluation_round(args, experiment, current_eeg, comp_vectors)
+
+    #results_dict[(places[0], start_time)] = corr
+    return places[0], start_time, corr
+
+def write_searchlight(file_path, results_dict, searchlight_clusters):
+
+    out_times = [k[1] for k in results_dict.keys()]
+    out_times = sorted(set(out_times))
+
+    results_array = list()
+    for e in range(128):
+        e_row = list()
+        for time in out_times:
+            e_row.append(results_dict[(e, time)])
+        results_array.append(e_row)
+
+    results_array = numpy.array(results_array)
+
+    with open(file_path, 'w') as o:
+        for t in out_times:
+            t = all_eeg.times[t]+(searchlight_clusters.time_radius/(searchlight_clusters.time_step*2))
+            o.write('{}\t'.format(t))
+        o.write('\n')
+        for e in results_array:
+            for t in e:
+                o.write('{}\t'.format(t))
+            o.write('\n')

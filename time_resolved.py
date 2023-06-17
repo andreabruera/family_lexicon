@@ -11,12 +11,10 @@ from general_utils import evaluate_pairwise, prepare_file, prepare_folder, evalu
 from io_utils import ExperimentInfo, LoadEEG
 from read_word_vectors import load_vectors
 
-def time_resolved(all_args):
+def prepare_data(all_args):
 
     args = all_args[0]
     n = all_args[1]
-    searchlight = all_args[2]
-    searchlight_clusters = all_args[3]
 
     out_path = prepare_folder(args)
     out_file, language_agnostic = prepare_file(args, n)
@@ -54,54 +52,22 @@ def time_resolved(all_args):
         assert s in comp_vectors.keys()
     ### splitting into batches of 2 to control word length
 
-    if not searchlight:
-        sub_scores = list()
-        for t in tqdm(range(len(all_eeg.times))):
-            current_eeg = {k : v[:, t] for k, v in eeg.items()}
+    return all_eeg, comp_vectors, eeg, experiment, file_path
 
-            corr = evaluation_round(args, experiment, current_eeg, comp_vectors)
-            sub_scores.append(corr)
+def time_resolved(all_args):
 
-        with open(os.path.join(file_path), 'w') as o:
-            for t in all_eeg.times:
-                o.write('{}\t'.format(t))
-            o.write('\n')
-            for d in sub_scores:
-                o.write('{}\t'.format(d))
-    else:
-        results_dict = dict()
-        tmin = -.1
-        tmax = 1.2
-        relevant_times = list(range(int(tmin*10000), int(tmax*10000), searchlight_clusters.time_radius))
-        out_times = list()
+    all_eeg, comp_vectors, eeg, experiment, file_path = prepare_data(all_args)
 
-        electrode_indices = [searchlight_clusters.neighbors[center] for center in range(128)]
-        for places in electrode_indices:
-            for time in relevant_times:
-                start_time = min([t_i for t_i, t in enumerate(all_eeg.times) if t>(time/10000)])
-                out_times.append(start_time)
-                end_time = max([t_i for t_i, t in enumerate(all_eeg.times) if t<=(time+searchlight_clusters.time_radius)/10000])+1
-                #print([start_time, end_time])
-                current_eeg = {k : v[places, start_time:end_time].flatten() for k, v in eeg.items()}
-                corr = evaluation_round(args, experiment, current_eeg, comp_vectors)
-                results_dict[(places[0], start_time)] = corr
-        out_times = sorted(set(out_times))
+    sub_scores = list()
+    for t in tqdm(range(len(all_eeg.times))):
+        current_eeg = {k : v[:, t] for k, v in eeg.items()}
 
-        results_array = list()
-        for e in range(128):
-            e_row = list()
-            for time in out_times:
-                e_row.append(results_dict[(e, time)])
-            results_array.append(e_row)
+        corr = evaluation_round(args, experiment, current_eeg, comp_vectors)
+        sub_scores.append(corr)
 
-        results_array = numpy.array(results_array)
-
-        with open(file_path, 'w') as o:
-            for t in out_times:
-                t = all_eeg.times[t]+(searchlight_clusters.time_radius/20000)
-                o.write('{}\t'.format(t))
-            o.write('\n')
-            for e in results_array:
-                for t in e:
-                    o.write('{}\t'.format(t))
-                o.write('\n')
+    with open(os.path.join(file_path), 'w') as o:
+        for t in all_eeg.times:
+            o.write('{}\t'.format(t))
+        o.write('\n')
+        for d in sub_scores:
+            o.write('{}\t'.format(d))
