@@ -1,7 +1,7 @@
 import os
 
-#message = lambda item : 'python3 main.py --analysis time_resolved --mapping_model {} --mapping_direction encoding --input_target_model {} --experiment_id two --temporal_resolution 5 --semantic_category_one {} --semantic_category_two {} --data_kind erp --data_folder /import/cogsci/andrea/dataset/neuroscience/family_lexicon_eeg/ --searchlight_spatial_radius large_distance --searchlight_temporal_radius large --language {} --evaluation_method correlation --average 24{}'.format(item[0], item[1], item[2], item[3], item[4], item[5])
-message = lambda item : 'python3 main.py --analysis searchlight --mapping_model {} --mapping_direction encoding --input_target_model {} --experiment_id one --temporal_resolution 5 --semantic_category_one {} --semantic_category_two {} --data_kind erp --data_folder /import/cogsci/andrea/dataset/neuroscience/exploring_individual_entities_eeg --searchlight_spatial_radius large_distance --searchlight_temporal_radius large --language {} --evaluation_method correlation --average 24{}'.format(item[0], item[1], item[2], item[3], item[4], item[5])
+message = lambda item : 'python3 main.py --analysis searchlight --mapping_model {} --mapping_direction decoding --input_target_model {} --experiment_id two --temporal_resolution 5 --semantic_category_one {} --semantic_category_two {} --data_kind erp --data_folder /import/cogsci/andrea/dataset/neuroscience/family_lexicon_eeg/ --searchlight_spatial_radius large_distance --searchlight_temporal_radius large --language {} --evaluation_method pairwise --average 24{}'.format(item[0], item[1], item[2], item[3], item[4], item[5])
+#message = lambda item : 'python3 main.py --analysis searchlight --mapping_model {} --mapping_direction decoding --input_target_model {} --experiment_id one --temporal_resolution 5 --semantic_category_one {} --semantic_category_two {} --data_kind erp --data_folder /import/cogsci/andrea/dataset/neuroscience/exploring_individual_entities_eeg --searchlight_spatial_radius large_distance --searchlight_temporal_radius large --language {} --evaluation_method pairwise --average 24{}'.format(item[0], item[1], item[2], item[3], item[4], item[5])
 
 lang_agnostic = [
           'famous_familiar',
@@ -20,7 +20,7 @@ lang_agnostic = [
           ]
 models = [
           'coarse_category',
-          #'fine_category',
+          'fine_category',
           #'w2v',
           #'xlm-roberta-large_individuals',
           #'wikipedia2vec',
@@ -64,7 +64,7 @@ models = [
 
 languages = [
              'it', 
-             'en'
+             #'en'
              ]
 mappings = [
             #'ridge', 
@@ -77,15 +77,15 @@ corrections = [
                ]
 categories = [
               'all',
-              'place', 
-              'person', 
+              #'place', 
+              #'person', 
               ]
 categories_two = [
                   #'familiar', 
                   #'famous', 
-                  #'all',
-                  'individual',
-                  'category',
+                  'all',
+                  #'individual',
+                  #'category',
                   ]
 #categories_two = [
 #                  'all',

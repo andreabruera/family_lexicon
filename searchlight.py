@@ -80,6 +80,14 @@ class SearchlightClusters:
                     l = [int(i) for i in l.strip().split('\t')[1:]]
                     searchlight_clusters[l[0]] = l
 
+        print('Average number of electrodes per cluster: {}'.format(
+                round(
+                      numpy.average([len(v) for v in searchlight_clusters.values()]), 
+                      1
+                      )
+                )
+                )
+
         return searchlight_clusters
 
 def searchlight(all_args):
@@ -89,9 +97,9 @@ def searchlight(all_args):
     comp_vectors = all_args[2]
     eeg = all_args[3]
     experiment = all_args[4]
-    places = all_args[5]
-    time = all_args[6]
-    searchlight_clusters = all_args[7]
+    places = all_args[5][0]
+    time = all_args[5][1]
+    searchlight_clusters = all_args[6]
 
     start_time = min([t_i for t_i, t in enumerate(all_eeg.times) if t>(time/searchlight_clusters.time_step)])
     end_time = max([t_i for t_i, t in enumerate(all_eeg.times) if t<=(time+searchlight_clusters.time_radius)/searchlight_clusters.time_step])+1
@@ -102,7 +110,7 @@ def searchlight(all_args):
     #results_dict[(places[0], start_time)] = corr
     return places[0], start_time, corr
 
-def write_searchlight(file_path, results_dict, searchlight_clusters):
+def write_searchlight(all_eeg, file_path, results_dict, searchlight_clusters):
 
     out_times = [k[1] for k in results_dict.keys()]
     out_times = sorted(set(out_times))

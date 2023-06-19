@@ -311,6 +311,17 @@ def read_args():
                                  ], 
                         required=True
                         )
+    parser.add_argument(
+                        '--cores_usage',
+                        choices=[
+                                 'max',
+                                 'high',
+                                 'mid',
+                                 'low',
+                                 'min'
+                                 ],
+                        default = 'mid',
+                        )
     args = parser.parse_args()
 
     check_args(args)
@@ -680,3 +691,18 @@ def read_colors(alt=False):
     grouped_colors = {g : [colors_dict[idx] for idx in g_v] for g, g_v in groups.items()}
 
     return grouped_colors
+
+def how_many_cores(args):
+    ### how many cores to use?
+    if args.cores_usage == 'max':
+        div = 1
+    if args.cores_usage == 'high':
+        div = 0.75
+    elif args.cores_usage == 'mid':
+        div = 0.5
+    elif args.cores_usage == 'low':
+        div = 0.25
+    elif args.cores_usage == 'min':
+        div = 0.1
+    processes = int(os.cpu_count()*div)
+    return processes

@@ -10,12 +10,10 @@ import sklearn
 
 from tqdm import tqdm
 
-from general_utils import read_args
+from general_utils import how_many_cores, read_args
 from io_utils import ExperimentInfo, LoadEEG, tfr_frequencies
 
 from plot_classification import plot_classification
-#from plotting.plot_decoding_results_breakdown import plot_decoding_results_breakdown
-#from plotting.plot_decoding_scores_comparison import plot_decoding_scores_comparison
 
 from searchlight import searchlight, SearchlightClusters, write_searchlight
 from group_searchlight import group_searchlight
@@ -31,13 +29,6 @@ logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S
 args = read_args()
 
 searchlight_clusters = SearchlightClusters(args)
-print('Average number of electrodes per cluster: {}'.format(
-                round(
-                      numpy.average([len(v) for v in searchlight_clusters.neighbors.values()]), 
-                      1
-                      )
-                )
-                )
 
 ### Plotting
 
@@ -55,9 +46,8 @@ if args.plot:
     elif args.analysis == 'searchlight':
         group_searchlight(args)
 
-### Getting the results
+### Running the analyses
 else:
-    #processes = 1
 
     experiment = ExperimentInfo(args)
 
@@ -66,7 +56,7 @@ else:
         if args.analysis == 'whole_trial':
             raise RuntimeError('to be implemented!')
 
-        processes = int(os.cpu_count()/2)
+        processes = how_many_cores(args)
 
         ### time resolved
         if args.analysis == 'time_resolved':
@@ -81,27 +71,31 @@ else:
 
         ### searchlight
         elif args.analysis == 'searchlight':
-            #processes = int(os.cpu_count()-2)
-            for n in range(1, experiment.subjects+1):
-                #searchlight([args, n, searchlight_marker, searchlight_clusters])
+            electrode_indices = [searchlight_clusters.neighbors[center] for center in range(128)]
+
+            places_and_times = list(itertools.product(electrode_indices, searchlight_clusters.relevant_times))
+
+            for n in tqdm(range(1, experiment.subjects+1)):
 
                 all_eeg, comp_vectors, eeg, experiment, file_path = prepare_data((args, n))
 
                 results_dict = dict()
 
-                electrode_indices = [searchlight_clusters.neighbors[center] for center in range(128)]
+                ### each place_time separately
+                if args.debugging:
+                    for place_time in places_and_times:
+                        res = searchlight((args, all_eeg, comp_vectors, eeg, experiment, place_time, searchlight_clusters)) 
+                        results_dict[(res[0], res[1])] = res[2]
 
-                for places in tqdm(electrode_indices):
-                    if args.debugging:
-                        for time in searchlight_clusters.relevant_times:
-                            res = searchlight((args, all_eeg, comp_vectors, eeg, experiment, places, time, searchlight_clusters)) 
-                            results_dict[(res[0], res[1])] = res[2]
-                    else:
-                        with multiprocessing.Pool(processes=processes) as pool:
-                            results_list = pool.map(searchlight, [(args, all_eeg, comp_vectors, eeg, experiment, places, t, searchlight_clusters) for t in searchlight_clusters.relevant_times])
-                            pool.close()
-                            pool.join()
-                        for res in results_list:
-                            results_dict[(res[0], res[1])] = res[2]
+                ### multiprocessing within one subject
+                else:
+                    with multiprocessing.Pool(processes=processes) as pool:
+                        results_list = pool.map(searchlight, [(args, all_eeg, comp_vectors, eeg, experiment, place_time, searchlight_clusters) for place_time in places_and_times])
+                        pool.close()
+                        pool.join()
+                    ### reordering results
+                    for res in results_list:
+                        results_dict[(res[0], res[1])] = res[2]
 
-                write_searchlight(file_path, results_dict, searchlight_clusters)
+                ### writing to files
+                write_searchlight(all_eeg, file_path, results_dict, searchlight_clusters)
