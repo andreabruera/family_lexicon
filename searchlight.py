@@ -1,4 +1,5 @@
 import collections
+import itertools
 import numpy
 import os
 import scipy
@@ -6,7 +7,7 @@ import scipy
 from scipy import stats
 from tqdm import tqdm
 from general_utils import prepare_folder
-from time_resolved import evaluation_round
+from time_resolved import evaluation_round, prepare_data
 
 class SearchlightClusters:
 
@@ -109,6 +110,35 @@ def searchlight(all_args):
 
     #results_dict[(places[0], start_time)] = corr
     return places[0], start_time, corr
+
+def searchlight_two(all_args):
+
+    args = all_args[0]
+    #all_eeg = all_args[1]
+    #comp_vectors = all_args[2]
+    #eeg = all_args[3]
+    experiment = all_args[1]
+    #places = all_args[5][0]
+    #time = all_args[5][1]
+    n = all_args[2]
+    searchlight_clusters = all_args[3]
+    places_and_times = all_args[4]
+
+    all_eeg, comp_vectors, eeg, experiment, file_path = prepare_data((args, n))
+    results_dict = dict()
+    for place_time in tqdm(places_and_times):
+        places = place_time[0]
+        time = place_time[1]
+
+        start_time = min([t_i for t_i, t in enumerate(all_eeg.times) if t>(time/searchlight_clusters.time_step)])
+        end_time = max([t_i for t_i, t in enumerate(all_eeg.times) if t<=(time+searchlight_clusters.time_radius)/searchlight_clusters.time_step])+1
+        #print([start_time, end_time])
+        current_eeg = {k : v[places, start_time:end_time].flatten() for k, v in eeg.items()}
+        corr = evaluation_round(args, experiment, current_eeg, comp_vectors)
+
+        results_dict[(places[0], start_time)] = corr
+    write_searchlight(all_eeg, file_path, results_dict, searchlight_clusters)
+    #return places[0], start_time, corr
 
 def write_searchlight(all_eeg, file_path, results_dict, searchlight_clusters):
 

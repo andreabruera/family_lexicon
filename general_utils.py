@@ -705,4 +705,5 @@ def how_many_cores(args):
     elif args.cores_usage == 'min':
         div = 0.1
     processes = int(os.cpu_count()*div)
+    print('using {} processes'.format(processes))
     return processes

@@ -15,7 +15,7 @@ from io_utils import ExperimentInfo, LoadEEG, tfr_frequencies
 
 from plot_classification import plot_classification
 
-from searchlight import searchlight, SearchlightClusters, write_searchlight
+from searchlight import searchlight, searchlight_two, SearchlightClusters, write_searchlight
 from group_searchlight import group_searchlight
 
 from read_word_vectors import load_vectors
@@ -57,6 +57,7 @@ else:
             raise RuntimeError('to be implemented!')
 
         processes = how_many_cores(args)
+        #processes = 2
 
         ### time resolved
         if args.analysis == 'time_resolved':
@@ -71,6 +72,19 @@ else:
 
         ### searchlight
         elif args.analysis == 'searchlight':
+
+            electrode_indices = [searchlight_clusters.neighbors[center] for center in range(128)]
+
+            places_and_times = list(itertools.product(electrode_indices, searchlight_clusters.relevant_times))
+
+            if args.debugging:
+                for n in tqdm(range(1, experiment.subjects+1)):
+                    res = searchlight_two((args, experiment, n, searchlight_clusters, places_and_times)) 
+            else:
+                with multiprocessing.Pool(processes=processes) as pool:
+                    pool.map(searchlight_two, [(args, experiment, n, searchlight_clusters, places_and_times) for n in range(1, experiment.subjects+1)])
+
+            '''
             electrode_indices = [searchlight_clusters.neighbors[center] for center in range(128)]
 
             places_and_times = list(itertools.product(electrode_indices, searchlight_clusters.relevant_times))
@@ -89,6 +103,7 @@ else:
 
                 ### multiprocessing within one subject
                 else:
+                    #processes = 2
                     with multiprocessing.Pool(processes=processes) as pool:
                         results_list = pool.map(searchlight, [(args, all_eeg, comp_vectors, eeg, experiment, place_time, searchlight_clusters) for place_time in places_and_times])
                         pool.close()
@@ -99,3 +114,4 @@ else:
 
                 ### writing to files
                 write_searchlight(all_eeg, file_path, results_dict, searchlight_clusters)
+            '''

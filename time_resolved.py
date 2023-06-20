@@ -56,6 +56,7 @@ def prepare_data(all_args):
 
 def time_resolved(all_args):
 
+    args = all_args[0]
     all_eeg, comp_vectors, eeg, experiment, file_path = prepare_data(all_args)
 
     sub_scores = list()

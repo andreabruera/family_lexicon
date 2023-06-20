@@ -85,7 +85,7 @@ def load_vectors(args, experiment, n, clustered=False):
             sorted_categories = sorted(set(categories.values()))
         elif args.input_target_model == 'fine_category':
             if args.experiment_id == 'two':
-                raise RuntimeError('There is no famous_familiar distinction for this experiment!')
+                raise RuntimeError('to be implemented!')
             categories = {v[0] : v[2] for v in experiment.trigger_to_info.values()}
             people_categories = {v[0] : v[2] for v in experiment.trigger_to_info.values() if v[1]=='person'}
             sorted_people_categories = sorted(set(people_categories.values()))
