@@ -16,6 +16,8 @@ from sklearn.cluster import KMeans, DBSCAN, SpectralClustering
 from tqdm import tqdm
 from wikipedia2vec import Wikipedia2Vec
 
+from io_utils import LoadEEG
+
 def purity(preds, labels):
 
     counter = {l : list() for l in list(set(labels))}
@@ -58,21 +60,41 @@ def levenshtein(seq1, seq2):
     #print (matrix)
     return (matrix[size_x - 1, size_y - 1])
 
-def load_vectors(args, experiment, n, clustered=False):
+def load_vectors(args, experiment, n):
 
     names = [v[0] for v in experiment.trigger_to_info.values()]
+
+    '''
+    if args.input_target_model == 'ceiling':
+        assert args.average == 24
+        args.average = -12
+        eeg_data_ceiling = LoadEEG(args, experiment, n)
+        comp_vectors = eeg_data_ceiling.data_dict
+        vectors = {experiment.trigger_to_info[k][0] : v for k, v in comp_vectors.items()}
+        args.average = 24
+        #ceiling = dict()
+        #for n_ceiling in range(1, 34):
+        #    for k, v in eeg_ceiling.items():
+        #        ### Adding and flattening
+        #        if k not in ceiling.keys():
+        #            ceiling[k] = list()
+        #        ceiling[k].append(v.flatten())
+        #comp_vectors = {k : numpy.average([vec for vec_i, vec in enumerate(v) if vec_i!=n-1], axis=0) for k, v in ceiling.items()}
+    '''
+    ### old ceiling
     if args.input_target_model == 'ceiling':
         ceiling = dict()
         for n_ceiling in range(1, 34):
             eeg_data_ceiling = LoadEEG(args, experiment, n_ceiling)
             eeg_ceiling = eeg_data_ceiling.data_dict
             for k, v in eeg_ceiling.items():
+                original_shape = v.shape
                 ### Adding and flattening
                 if k not in ceiling.keys():
                     ceiling[k] = list()
                 ceiling[k].append(v.flatten())
         comp_vectors = {k : numpy.average([vec for vec_i, vec in enumerate(v) if vec_i!=n-1], axis=0) for k, v in ceiling.items()}
-        comp_vectors = {experiment.trigger_to_info[k][0] : v for k, v in comp_vectors.items()}
+        vectors = {experiment.trigger_to_info[k][0] : v.reshape(original_shape) for k, v in comp_vectors.items()}
 
     elif args.input_target_model in ['coarse_category', 'famous_familiar', 'fine_category']:
         if args.input_target_model == 'coarse_category':
@@ -200,7 +222,7 @@ def load_vectors(args, experiment, n, clustered=False):
                                #'exp_{}_{}_{}_average_{}_entity_articles_limit_1seventh_vectors.tsv'.format(args.experiment_id, args.input_target_model, args.language, args.average))
                                #'exp_{}_{}_{}_average_{}_entity_articles_limit_1fifth_vectors.tsv'.format(args.experiment_id, args.input_target_model, args.language, args.average))
                                #'exp_{}_{}_{}_average_{}_entity_articles_limit_1fourth_vectors.tsv'.format(args.experiment_id, args.input_target_model, args.language, args.average))
-                               'exp_{}_{}_{}_average_{}_entity_articles_limit_all_vectors.tsv'.format(args.experiment_id, args.input_target_model, args.language, args.average))
+                               'exp_{}_{}_{}_average_24_entity_articles_limit_all_vectors.tsv'.format(args.experiment_id, args.input_target_model, args.language))
         #if args.input_target_model in ['BERT_large_individuals', 'ITGPT2_individuals', 'xlm-roberta-large_individuals']:
         if args.experiment_id == 'two':
             file_path = file_path.replace('articles', 'sentences')
@@ -233,6 +255,8 @@ def load_vectors(args, experiment, n, clustered=False):
         #corr = scipy.stats.pearsonr(lengths, distances)
         #print('correlation model - length: {}'.format(corr))
     if args.experiment_id == 'one' and args.semantic_category_two != 'individual':
+        pass
+    elif args.input_target_model == 'ceiling':
         pass
     else:
         for idx, cat in [(2, 'famous/familiar'), (1, 'person/place')]:

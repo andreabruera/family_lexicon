@@ -125,6 +125,8 @@ def searchlight_two(all_args):
     places_and_times = all_args[4]
 
     all_eeg, comp_vectors, eeg, experiment, file_path = prepare_data((args, n))
+    if args.input_target_model == 'ceiling':
+        full_comp_vectors = comp_vectors.copy()
     results_dict = dict()
     for place_time in tqdm(places_and_times):
         places = place_time[0]
@@ -134,6 +136,8 @@ def searchlight_two(all_args):
         end_time = max([t_i for t_i, t in enumerate(all_eeg.times) if t<=(time+searchlight_clusters.time_radius)/searchlight_clusters.time_step])+1
         #print([start_time, end_time])
         current_eeg = {k : v[places, start_time:end_time].flatten() for k, v in eeg.items()}
+        if args.input_target_model == 'ceiling':
+            comp_vectors = {k : v[places, start_time:end_time].flatten() for k, v in full_comp_vectors.items()}
         corr = evaluation_round(args, experiment, current_eeg, comp_vectors)
 
         results_dict[(places[0], start_time)] = corr

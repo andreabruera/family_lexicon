@@ -322,6 +322,10 @@ def read_args():
                                  ],
                         default = 'mid',
                         )
+    parser.add_argument(
+                      '--across_subjects',
+                      action='store_true',
+                      )
     args = parser.parse_args()
 
     check_args(args)
@@ -354,7 +358,11 @@ def check_args(args):
     if args.mapping_model in ['ridge', 'support_vector'] and args.mapping_direction == 'correlation':
         marker = True
         message = 'no correlation for ridge/support vector!'
-    #if 'gold' in args.input_target_model and args.average!=-36:
+    if args.mapping_model in ['ridge', 'support_vector'] and args.evaluation_method == 'correlation' and args.mapping_direction == 'decoding':
+        if args.input_target_model in ['coarse_category', 'famous_familiar', 'word_length', 'orthography', 'sentence_lengths', 'log_frequency', 'imageability', 'familiarity', 'frequency', 'fine_category']:
+            marker = True
+            message = 'impossible to evaluate decoding with correlation for {}'.format(args.input_target_model)
+        
     if marker:
         raise RuntimeError(message)
 
@@ -369,86 +377,58 @@ def split_train_test(args, split, eeg, experiment, comp_vectors):
     if args.input_target_model == 'famous_familiar':
         cat_index = 2
 
-
-    test_samples = list()
-    test_true = list()
-
+    test_model = list()
+    test_brain = list()
     test_lengths = list()
+    test_trigs = list()
 
     for trig in split:
-        #if args.input_target_model not in ['coarse_category', 'fine_category', 'famous_familiar'] or args.mapping_model == 'rsa':
-        if 1 == 1:
-        #if args.mapping_direction != 'correlation':
-            trig = experiment.trigger_to_info[trig][0]
-            vecs = comp_vectors[trig]
+        trig = experiment.trigger_to_info[trig][0]
+        vecs = comp_vectors[trig]
         erps = eeg[trig]
         if not isinstance(erps, list):
             erps = [erps]
-            #if args.input_target_model not in ['coarse_category', 'fine_category', 'famous_familiar'] or args.mapping_model == 'rsa':
-            if 1 == 1:
-            #if args.mapping_direction != 'correlation':
-                vecs = [vecs]
-        #if args.input_target_model not in ['coarse_category', 'fine_category', 'famous_familiar'] or args.mapping_model == 'rsa':
-        if 1 == 1:
-        #if args.mapping_direction != 'correlation':
-            test_samples.extend(vecs)
-            test_true.extend(erps)
-            test_lengths.append(len(trig))
-        else:
-            test_samples.extend(erps)
-            test_true.extend([experiment.trigger_to_info[trig][cat_index] for i in range(len(erps))])
-            test_lengths.append(len(experiment.trigger_to_info[trig][0]))
+            vecs = [vecs]
+        test_model.extend(vecs)
+        test_brain.extend(erps)
+        test_lengths.append(len(trig))
+        test_trigs.append(trig)
 
-    train_samples = list()
-    train_true = list()
-
+    train_model = list()
+    train_brain = list()
+    train_trigs = list()
     train_lengths = list()
 
     for k, erps in eeg.items():
-        #if args.input_target_model not in ['coarse_category', 'fine_category', 'famous_familiar'] or args.mapping_model == 'rsa':
-        if 1 == 1:
-        #if args.mapping_direction != 'correlation':
-            k = {v[0] : k for k, v in experiment.trigger_to_info.items()}[k]
+        k = {v[0] : k for k, v in experiment.trigger_to_info.items()}[k]
         if not isinstance(erps, list):
             erps = [erps]
         if k not in split:
-            if 1 == 1:
-            #if args.input_target_model not in ['coarse_category', 'fine_category', 'famous_familiar'] or args.mapping_model == 'rsa':
-            #if args.mapping_direction != 'correlation':
-                k = experiment.trigger_to_info[k][0]
-                vecs = [comp_vectors[k]]
-                train_samples.extend(vecs)
-                train_true.extend(erps)
-                train_lengths.append(len(k))
-            else:
-                train_samples.extend(erps)
-                train_true.extend([experiment.trigger_to_info[k][cat_index] for i in range(len(erps))])
-                train_lengths.append(len(experiment.trigger_to_info[k][0]))
+            k = experiment.trigger_to_info[k][0]
+            vecs = [comp_vectors[k]]
+            train_model.extend(vecs)
+            train_brain.extend(erps)
+            train_lengths.append(len(k))
+            train_trigs.append(k)
 
-    test_samples = numpy.array(test_samples, dtype=numpy.float64)
-    train_samples = numpy.array(train_samples, dtype=numpy.float64)
+    test_model = numpy.array(test_model, dtype=numpy.float64)
+    train_model = numpy.array(train_model, dtype=numpy.float64)
 
-    if 0 == 1:
-        train_true = LabelEncoder().fit_transform(train_true)
-        test_true = LabelEncoder().fit_transform(test_true)
-        
-        #train_labels = len(list(set(train_true)))
-    else:
-        train_true = numpy.array(train_true, dtype=numpy.float64)
-        test_true = numpy.array(test_true, dtype=numpy.float64)
+    train_brain = numpy.array(train_brain, dtype=numpy.float64)
+    test_brain = numpy.array(test_brain, dtype=numpy.float64)
 
-        assert train_samples.shape[0] == len(eeg.keys())-2
-        assert len(test_samples) == 2
+    assert train_model.shape[0] == len(eeg.keys())-2
+    assert len(test_model) == 2
 
     train_lengths = numpy.array(train_lengths)
     test_lengths = numpy.array(test_lengths)
 
-    assert train_lengths.shape[0] == train_samples.shape[0]
-    assert test_lengths.shape[0] == test_samples.shape[0]
+    assert train_lengths.shape[0] == train_model.shape[0]
+    assert test_lengths.shape[0] == test_model.shape[0]
 
-    return train_true, test_true, train_samples, test_samples, train_lengths, test_lengths
+    return train_brain, test_brain, train_model, test_model, train_lengths, test_lengths, train_trigs, test_trigs
 
-def correct_for_length(args, train_true, train_lengths, test_true, test_lengths):
+def correct_for_length(args, train_brain, train_lengths, test_brain, test_lengths):
     '''
     ### only train
     cfr = ConfoundRegressor(confound=train_lengths, X=train_true.copy())
@@ -457,28 +437,39 @@ def correct_for_length(args, train_true, train_lengths, test_true, test_lengths)
     '''
     ### train + test
     correction_lengths = numpy.hstack([train_lengths, test_lengths])
-    correction_data = numpy.vstack([train_true, test_true])
+    correction_data = numpy.vstack([train_brain, test_brain])
     cfr = ConfoundRegressor(confound=correction_lengths, X=correction_data)
-    cfr.fit(train_true)
-    train_true = cfr.transform(train_true)
-    test_true = cfr.transform(test_true)
+    cfr.fit(train_brain)
+    train_brain = cfr.transform(train_brain)
+    test_brain = cfr.transform(test_brain)
 
-    return train_true, test_true
+    return train_brain, test_brain
 
-def evaluate_pairwise(args, train_true, test_true, train_samples, test_samples, train_lengths, test_lengths):
+def remove_average(train_brain, test_brain):
+    ### train + test
+    #correction_data = numpy.average(numpy.vstack([train_brain, test_brain]), axis=0)
+    ### train
+    correction_data = numpy.average(train_brain, axis=0)
+    train_brain = [tr - correction_data for tr in train_brain]
+    test_brain = [tst - correction_data for tst in test_brain]
+
+    return train_brain, test_brain
+
+def evaluate_pairwise(args, train_brain, test_brain, train_model, test_model, train_lengths, test_lengths):
 
     if args.mapping_model == 'rsa':
 
         if args.mapping_direction == 'encoding':
             ### Encoding targets (brain images)
-            test_samples = [numpy.sum([t*corrs[t_i] for t_i, t in enumerate(train_true)], axis=0) for corrs in test_samples]
+            test_input = [numpy.sum([t*corrs[t_i] for t_i, t in enumerate(train_brain)], axis=0) for corrs in test_model]
+            #test_input = [numpy.sum([t*corr for t in train_brain], axis=0) for corr in test_model]
+            test_target = test_brain.copy()
 
         elif args.mapping_direction == 'decoding':
-            ### test_samples = model correlations
-            test_true = [[scipy.stats.pearsonr(tst, tr)[0] for tr in train_true] for tst in test_true]
+            test_input = [[scipy.stats.pearsonr(tst, tr)[0] for tr in train_brain] for tst in test_brain]
+            test_target = test_model.copy()
 
     elif args.mapping_model in ['ridge', 'support_vector']:
-
 
         ### Differentiating between binary and multiclass classifier
         if args.mapping_model == 'support_vector':
@@ -487,41 +478,41 @@ def evaluate_pairwise(args, train_true, test_true, train_samples, test_samples, 
             classifier = Ridge()
             #print('loading ridge')
             #classifier = RidgeCV(alphas=(0.00005, 1, 10))
-        train_samples = scipy.stats.zscore(train_samples)
-        test_samples = scipy.stats.zscore(test_samples)
-        train_true = scipy.stats.zscore(train_true, axis=1)
-        test_true = scipy.stats.zscore(test_true, axis=1)
+        train_model = scipy.stats.zscore(train_model)
+        test_model = scipy.stats.zscore(test_model)
+        train_brain = scipy.stats.zscore(train_brain, axis=1)
+        test_brain = scipy.stats.zscore(test_brain, axis=1)
 
         if args.mapping_direction == 'encoding':
-            if type(train_samples[0]) in [int, float, numpy.float64]:
-                train_samples = train_samples.reshape(-1, 1)
-                test_samples = test_samples.reshape(-1, 1)
-            classifier.fit(train_samples, train_true)
-            ### test_samples = predictions
-            test_samples = classifier.predict(test_samples)
+            if type(train_model[0]) in [int, float, numpy.float64]:
+                train_model = train_model.reshape(-1, 1)
+                test_model = test_model.reshape(-1, 1)
+            classifier.fit(train_model, train_brain)
+            test_target = test_brain.copy()
+            test_input = classifier.predict(test_model)
 
         elif args.mapping_direction == 'decoding':
-            classifier.fit(train_true, train_samples)
-            ### test_true = predictions
-            predictions = classifier.predict(test_true)
-            test_true = test_samples.copy()
-            test_samples = predictions.copy()
+            classifier.fit(train_brain, train_model)
+            test_target = test_model.copy()
+            test_input = classifier.predict(test_brain)
 
     if args.evaluation_method == 'pairwise':
 
         wrong = 0.
         for idx_one, idx_two in [(0, 1), (1, 0)]:
-            if type(test_samples[0]) in [int, float, numpy.float64]:
-                wrong += 1 - abs(test_samples[idx_one]-test_true[idx_two])
+            ### decoding
+            if type(test_target[0]) in [int, float, numpy.float64]:
+                wrong += 1 - abs(test_input[idx_one]-test_target[idx_two])
             else:
-                wrong += scipy.stats.pearsonr(test_samples[idx_one], test_true[idx_two])[0]
+                wrong += scipy.stats.pearsonr(test_input[idx_one], test_target[idx_two])[0]
 
         correct = 0.
         for idx_one, idx_two in [(0, 0), (1, 1)]:
-            if type(test_samples[0]) in [int, float, numpy.float64]:
-                correct += 1 - abs(test_samples[idx_one]-test_true[idx_two])
+            ### decoding
+            if type(test_target[0]) in [int, float, numpy.float64]:
+                correct += 1 - abs(test_input[idx_one]-test_target[idx_two])
             else:
-                correct += scipy.stats.pearsonr(test_samples[idx_one], test_true[idx_two])[0]
+                correct += scipy.stats.pearsonr(test_input[idx_one], test_target[idx_two])[0]
 
         if correct > wrong:
             #accuracies.append(1)
@@ -533,10 +524,11 @@ def evaluate_pairwise(args, train_true, test_true, train_samples, test_samples, 
     elif args.evaluation_method == 'correlation':
         correct = 0.
         for idx_one, idx_two in [(0, 0), (1, 1)]:
-            if type(test_samples[0]) in [int, float, numpy.float64]:
-                correct += 1 - abs(test_samples[idx_one]-test_true[idx_two])
+            #print(correct)
+            if type(test_target[0]) in [int, float, numpy.float64]:
+                correct += 1 - abs(test_input[idx_one]-test_target[idx_two])
             else:
-                correct += scipy.stats.pearsonr(test_samples[idx_one], test_true[idx_two])[0]
+                correct += scipy.stats.pearsonr(test_input[idx_one], test_target[idx_two])[0]
         accuracy = correct/2
 
     return accuracy
@@ -546,37 +538,44 @@ def evaluation_round(args, experiment, current_eeg, comp_vectors):
     scores = list()
 
     for split in experiment.test_splits:
-        train_true, test_true, train_samples, test_samples, train_lengths, test_lengths = split_train_test(args, split, current_eeg, experiment, comp_vectors)
-        if type(test_samples[0]) in [int, float, numpy.float64, tuple]:
-            if test_samples[0] == test_samples[1]:
+        train_brain, test_brain, train_model, test_model, train_lengths, test_lengths, train_trigs, test_trigs = split_train_test(args, split, current_eeg, experiment, comp_vectors)
+
+        ### if label's the same, stop!
+        if type(test_model[0]) in [int, float, numpy.float64, tuple]:
+            if test_model[0] == test_model[1]:
                 continue
+
         ### regress out word_length
         if args.corrected:
-            train_true, test_true = correct_for_length(args, train_true, train_lengths, test_true, test_lengths)
+            train_brain, test_brain = correct_for_length(args, train_brain, train_lengths, test_brain, test_lengths)
+        else:
+            if args.mapping_direction == 'encoding' and args.evaluation_method == 'correlation':
+                train_brain, test_brain = remove_average(train_brain, test_brain)
 
-        ### transforming model
+        ### transforming model to pairwise if required
         if args.mapping_model == 'rsa':
-            if type(test_samples[0]) in [int, float, numpy.float64]:
-                test_samples = [[1 - abs(tst-tr) for tr in train_samples] for tst in test_samples]
-            elif str(type(test_samples[0])) in ["<class 'numpy.ndarray'>"] and args.input_target_model == 'location':
-                test_samples = [[24901 - geopy.distance.distance(tst, tr).miles for tr in train_samples] for tst in test_samples]
+            if type(test_model[0]) in [int, float, numpy.float64]:
+                test_model = [[1 - abs(tst-tr) for tr in train_model] for tst in test_model]
+            elif str(type(test_model[0])) in ["<class 'numpy.ndarray'>"] and args.input_target_model == 'location':
+                test_model = [[24901 - geopy.distance.distance(tst, tr).miles for tr in train_model] for tst in test_model]
             ### for vectors, we use correlation
             ### NB: the higher the value, the more similar the items!
             else:
-                test_samples = [[scipy.stats.pearsonr(tst, tr)[0] for tr in train_samples] for tst in test_samples]
+                test_model = [[scipy.stats.pearsonr(tst, tr)[0] for tr in train_model] for tst in test_model]
+            #test_model = [model_sims[tuple(sorted([tr, tst]))] for tr in train_trigs for tst in test_trigs]
 
         ### rsa decoding/encoding
         if args.mapping_direction in ['encoding', 'decoding']:
-            score = evaluate_pairwise(args, train_true, test_true, train_samples, test_samples, train_lengths, test_lengths)
+            score = evaluate_pairwise(args, train_brain, test_brain, train_model, test_model, train_lengths, test_lengths)
             scores.append(score)
 
         ### RSA
         elif args.mapping_direction == 'correlation':
             #eeg_sims = [1. - scipy.stats.pearsonr(test_current_eeg[batch_stim], train_current_eeg[k_two])[0] for k_two in train_stimuli]
-            for test_brain, test_model in zip(test_true, test_samples):
+            for curr_test_brain, curr_test_model in zip(test_brain, test_model):
 
-                eeg_sims = [scipy.stats.pearsonr(test_brain, train_brain)[0] for train_brain in train_true]
-                model_sims = [scipy.stats.pearsonr(test_model, train_model)[0] for train_model in train_samples]
+                eeg_sims = [scipy.stats.pearsonr(curr_test_brain, curr_train_brain)[0] for curr_train_brain in train_brain]
+                model_sims = [scipy.stats.pearsonr(curr_test_model, curr_train_model)[0] for curr_train_model in train_model]
                 corr = scipy.stats.pearsonr(eeg_sims, model_sims)[0]
                 scores.append(corr)
 

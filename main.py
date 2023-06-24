@@ -61,9 +61,15 @@ else:
 
         ### time resolved
         if args.analysis == 'time_resolved':
+
+            if args.across_subjects:
+                time_resolved([args, experiment.subjects])
+            #else:
+            #    continue
+
             if args.debugging:
                 for n in range(1, experiment.subjects+1):
-                    time_resolved([args, n, searchlight_marker, searchlight_clusters])
+                    time_resolved([args, n])
             else:
                 with multiprocessing.Pool(processes=processes) as pool:
                     pool.map(time_resolved, [(args, n) for n in range(1, experiment.subjects+1)])

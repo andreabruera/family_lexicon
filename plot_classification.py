@@ -106,6 +106,8 @@ def read_files(args, subjects):
     data = list()
     out_path = prepare_folder(args)
     for sub in range(1, subjects+1):
+        if args.across_subjects and sub != subjects:
+            continue
 
         out_file, language_agnostic = prepare_file(args, sub)
 
