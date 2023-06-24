@@ -149,29 +149,23 @@ def load_vectors(args, experiment, n):
 
     elif args.input_target_model in ['imageability', 'familiarity']:
         fams = list()
-        if args.experiment_id == 'two':
-            raise RuntimeError('For this experiment familiarity is called sentence_lengths')
-        else:
-            filename = os.path.join('lab','stimuli',
-                                    '{}_ratings_experiment.csv'.format(args.input_target_model))
-            with open(filename) as i:
-                lines = [l.strip().split('\t')[1:] for l in i.readlines()]
-            assert len(names) <= len(lines[0])
-            for k in names:
-                try:
-                    assert k in lines[0]
-                    rel_index = lines[0].index(k)
-                    try:
-                        fam = numpy.average([int(l[rel_index]) for l in lines[1:]])
-                    except IndexError:
-                        fam = float(lines[-1][-1])
-                except AssertionError:
-                    #fam = 3.5
-                    fam = 4.5
-                fams.append(fam)
-
-        vectors = {k_one : l_one for k_one, l_one in zip(names, fams)}
-        vectors = minus_one_one_norm(vectors)
+        if args.experiment_id == 'two' and args.semantic_category_two != 'famous':
+            raise RuntimeError('Familiarity for experiment two is only with famous entities!')
+        if args.experiment_id == 'one' and args.semantic_category_two != 'individual':
+            raise RuntimeError('Familiarity for categories is not considered!')
+        file_path = os.path.join(
+                                 'all_models', 
+                                 'exp_{}_{}_{}_ratings.tsv'.format(
+                                                                   args.experiment_id,
+                                                                   args.input_target_model,
+                                                                   args.language
+                                                                   )
+                                 )
+        assert os.path.exists(file_path)
+        with open(file_path) as i:
+            lines = [l.strip().split('\t') for l in i.readlines()][1:]
+        vectors = {l[0] : float(l[1]) for l in lines}
+        vectors = minus_one_one_norm(vectors.items())
 
     elif args.input_target_model in ['sentence_lengths']: 
         ### reading file
@@ -262,10 +256,16 @@ def load_vectors(args, experiment, n):
         for idx, cat in [(2, 'famous/familiar'), (1, 'person/place')]:
             famous_familiar = {v[0] : 0 if v[idx] in ['famous', 'person'] else 1 for v in experiment.trigger_to_info.values()}
             keyz = sorted(set(famous_familiar.keys()) & set(vectors.keys()))
-            if args.experiment_id == 'one':
-                assert len(keyz) == 40
+            if args.input_target_model in ['familiarity', 'imageability']:
+                if args.experiment_id == 'one':
+                    assert len(keyz) == 32
+                else:
+                    assert len(keyz) == 16
             else:
-                assert len(keyz) == 32
+                if args.experiment_id == 'one':
+                    assert len(keyz) == 40
+                else:
+                    assert len(keyz) == 32
             #print(len(keyz))
             fam_fam_sims = [1 if famous_familiar[one]==famous_familiar[two] else 0 for one in keyz for two in keyz if one!=two] 
             if type(vectors[keyz[0]]) in [int, float, numpy.float64] or vectors[keyz[0]].shape == (1, ):

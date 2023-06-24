@@ -60,12 +60,17 @@ def prepare_data(all_args):
 
     ### Words
     stimuli = list(eeg.keys())
+    marker = False
     if args.experiment_id == 'two' and args.input_target_model == 'ceiling':
+        marker = True
+    if args.input_target_model in ['familiarity', 'imageability']:
+        marker = True
+    if marker:
         stimuli = [s for s in stimuli if s in comp_vectors.keys()]
+        eeg = {s : eeg[s] for s in stimuli}
     for s in stimuli:
         #print(s)
         assert s in comp_vectors.keys()
-    ### splitting into batches of 2 to control word length
 
     return all_eeg, comp_vectors, eeg, experiment, file_path
 
