@@ -180,101 +180,47 @@ def read_args():
                         required=True,
                         choices=[
                                  'ceiling',
-                                 'sentence_lengths',
-                                 'orthography',
-                                 'imageability',
-                                 'familiarity',
-                                 'word_length',
-                                 'frequency',
-                                 'log_frequency',
-                                 'syllables',
-                                 'valence_individuals',
-                                 'arousal_individuals',
-                                 'concreteness_individuals',
-                                 'imageability_individuals',
-                                 'perceptual_individuals',
-                                 'affective_individuals',
-                                 ### English
-                                 # Contextualized
-                                 'BERT_base_en_sentence', 'BERT_large_en_sentence',
-                                 'BERT_base_en_mentions', 'BERT_large_en_mentions',
-                                 'ELMO_small_en_mentions', 'ELMO_original_en_mentions',
-                                 ### bert large
-                                 'BERT_large',
-                                 'BERT_large_individuals',
-                                 'BERT_large_random',
-                                 'BERT_large_gold',
-                                 'BERT_large_gold_0-150ms',
-                                 'BERT_large_gold_150-300ms',
-                                 'BERT_large_gold_300-500ms',
-                                 'BERT_large_gold_500-800ms',
-                                 'BERT_large_individuals_300-500ms',
-                                 'BERT_large_model_300-500ms',
-                                 'BERT_large_model_500-800ms',
-                                 'BERT_large_individuals_500-800ms',
-                                 'BERT_large_random_300-500ms',
-                                 ### xlm roberta large
-                                 'xlm-roberta-large',
-                                 'xlm-roberta-large_individuals',
-                                 'xlm-roberta-large_all',
-                                 'xlm-roberta-large_one',
-                                 'xlm-roberta-large_random',
-                                 'xlm-roberta-large_gold_0-150ms',
-                                 'xlm-roberta-large_gold_300-500ms',
-                                 'xlm-roberta-large_model_300-500ms',
-                                 'xlm-roberta-large_gold_500-800ms',
-                                 ### itgpt2
-                                 'ITGPT2',
-                                 'ITGPT2_individuals',
-                                 'ITGPT2_random',
-                                 'ITGPT2_gold_0-150ms',
-                                 'ITGPT2_gold_300-500ms',
-                                 'ITGPT2_individuals_300-500ms',
-                                 'ITGPT2_individuals_500-800ms',
-                                 'ITGPT2_model_300-500ms',
-                                 'ITGPT2_model_500-800ms',
-                                 'ITGPT2_gold_500-800ms',
-                                 ### gpt2 large
-                                 'gpt2-large',
-                                 'gpt2-large_individuals',
-                                 'gpt2-large_random',
-                                 'gpt2-large_gold_0-150ms',
-                                 'gpt2-large_gold_150-300ms',
-                                 'gpt2-large_gold_300-500ms',
-                                 'gpt2-large_model_300-500ms',
-                                 'gpt2-large_gold_500-800ms',
-                                 # Contextualized + knowledge-aware
-                                 'BERT_base_en_sentence', 'BERT_large_en_sentence',
-                                 'LUKE_base_en_mentions', 'LUKE_large_en_mentions',
-                                 # Static
-                                 'w2v', \
-                                 'w2v_sentence_individuals',
-                                 'wikipedia2vec_sentence_individuals',
-                                 # Static + knowledge-aware
-                                 'wikipedia2vec', \
-                                 # Knowledge-only
-                                 'transe', 
-                                 ### Italian
-                                 'LUKE_large',
-                                 'SPANBERT_large', 
-                                 'MBERT', 
-                                 'ITBERT',
-                                 'it_w2v',
-                                 'it_wikipedia2vec',
-                                 'ITGPT2medium',
-                                 'BERT_base_it_mentions',
-                                 ### Ceiling
-                                 'ceiling',
                                  ### Category
                                  'coarse_category',
                                  'famous_familiar',
                                  'fine_category',
-                                 'mixed_category',
                                  'individuals',
-                                 'gender',
+                                 'sex',
                                  'place_type',
                                  'occupation',
                                  'location',
+                                 # orthography
+                                 'orthography',
+                                 'word_length',
+                                 'syllables',
+                                 # frequency
+                                 'frequency',
+                                 'log_frequency',
+                                 # norms
+                                 'imageability',
+                                 'familiarity',
+                                 'concreteness_sentence',
+                                 'perceptual_sentence',
+                                 'affective_sentence',
+                                 'imageability_sentence',
+                                 # amount of knowledge
+                                 'sentence_lengths',
+                                 # static language models
+                                 # Static
+                                 'w2v',
+                                 'w2v_sentence',
+                                 # Static + knowledge-aware
+                                 'wikipedia2vec',
+                                 'wikipedia2vec_sentence',
+                                 # Knowledge-only
+                                 'transe', 
+                                 # contextualized
+                                 'BERT_large',
+                                 'MBERT', 
+                                 'xlm-roberta-large',
+                                 'ITGPT2',
+                                 'gpt2-large',
+                                 'LUKE_large',
                                  ],
                         help='Which computational model to use for decoding?'
                         )
@@ -362,6 +308,20 @@ def check_args(args):
         if args.input_target_model in ['coarse_category', 'famous_familiar', 'word_length', 'orthography', 'sentence_lengths', 'log_frequency', 'imageability', 'familiarity', 'frequency', 'fine_category']:
             marker = True
             message = 'impossible to evaluate decoding with correlation for {}'.format(args.input_target_model)
+    if args.input_target_model == 'sex':
+        if args.semantic_category_one in ['place', 'all']:
+            marker = True
+            message = 'No sex for places!'
+        if args.semantic_category_two in ['category']:
+            marker = True
+            message = 'No sex for categories!'
+    if args.input_target_model == 'location':
+        if args.semantic_category_one in ['person', 'all']:
+            marker = True
+            message = 'No location for places!'
+        if args.semantic_category_two in ['category', 'all']:
+            marker = True
+            message = 'No location for categories!'
         
     if marker:
         raise RuntimeError(message)
@@ -604,24 +564,22 @@ def prepare_folder(args):
 def prepare_file(args, n):
 
     lang_agnostic_models = [
-                             'orthography',
-                             'imageability',
-                             'familiarity',
-                             'word_length',
-                             'syllables',
-                             'individuals',
-                             'place_type',
-                             'occupation',
-                             'gender',
-                             'location',
-                             'nationality',
-                             'distance_from_trieste',
                              ### Ceiling
                              'ceiling',
-                             ### Category
+                             # orthography
+                             'orthography',
+                             'word_length',
+                             'syllables',
+                             # norms
+                             'imageability',
+                             'familiarity',
+                             # categories
                              'coarse_category',
                              'famous_familiar',
                              'fine_category',
+                             'sex',
+                             'location',
+                             'individuals',
                              ]
 
     if args.input_target_model in lang_agnostic_models:

@@ -64,24 +64,7 @@ def load_vectors(args, experiment, n):
 
     names = [v[0] for v in experiment.trigger_to_info.values()]
 
-    '''
-    if args.input_target_model == 'ceiling':
-        assert args.average == 24
-        args.average = -12
-        eeg_data_ceiling = LoadEEG(args, experiment, n)
-        comp_vectors = eeg_data_ceiling.data_dict
-        vectors = {experiment.trigger_to_info[k][0] : v for k, v in comp_vectors.items()}
-        args.average = 24
-        #ceiling = dict()
-        #for n_ceiling in range(1, 34):
-        #    for k, v in eeg_ceiling.items():
-        #        ### Adding and flattening
-        #        if k not in ceiling.keys():
-        #            ceiling[k] = list()
-        #        ceiling[k].append(v.flatten())
-        #comp_vectors = {k : numpy.average([vec for vec_i, vec in enumerate(v) if vec_i!=n-1], axis=0) for k, v in ceiling.items()}
-    '''
-    ### old ceiling
+    ### ceiling: mapping to avg of other subjects
     if args.input_target_model == 'ceiling':
         ceiling = dict()
         for n_ceiling in range(1, 34):
@@ -96,6 +79,7 @@ def load_vectors(args, experiment, n):
         comp_vectors = {k : numpy.average([vec for vec_i, vec in enumerate(v) if vec_i!=n-1], axis=0) for k, v in ceiling.items()}
         vectors = {experiment.trigger_to_info[k][0] : v.reshape(original_shape) for k, v in comp_vectors.items()}
 
+    ### categories / familiarity
     elif args.input_target_model in ['coarse_category', 'famous_familiar', 'fine_category']:
         if args.input_target_model == 'coarse_category':
             categories = {v[0] : v[1] for v in experiment.trigger_to_info.values()}
@@ -114,10 +98,38 @@ def load_vectors(args, experiment, n):
             place_categories = {v[0] : v[2] for v in experiment.trigger_to_info.values() if v[1]=='place'}
             sorted_place_categories = sorted(set(place_categories.values()))
             sorted_categories = sorted_people_categories + sorted_place_categories
-        #vectors = {k_one : numpy.array([0. if categories[k_one]==categories[k_two] else 1. for k_two in names if k_one != k_two]) for k_one in names}
         vectors = {w : sorted_categories.index(categories[w]) for w in names}
         vectors = minus_one_one_norm(vectors.items())
 
+    elif args.input_target_model == 'location':
+        with open(os.path.join(
+                               'all_models',
+                               'exp_{}_location.tsv'.format(args.experiment_id),
+                               )
+                               ) as i:
+            lines = [l.strip().split('\t') for l in i.readlines()][1:]
+            if args.experiment_id == 'one':
+                vectors = {l[0] : numpy.array((l[1].split(',')[0], l[1].split(',')[1]), dtype=numpy.float64) for l in lines if ',' in l[1]}
+            else:
+                vectors = {l[1] : mapper[l[2]] for l in lines if int(l[0]) == n and l[2] in mapper.keys()}
+    elif args.input_target_model == 'sex':
+        mapper = {
+                  'F' : -1, 
+                  'FM' : 0, 
+                  'M' : 1
+                  }
+        with open(os.path.join(
+                               'all_models',
+                               'exp_{}_sex.tsv'.format(args.experiment_id),
+                               )
+                               ) as i:
+            lines = [l.strip().split('\t') for l in i.readlines()][1:]
+            if args.experiment_id == 'one':
+                vectors = {l[0] : mapper[l[1]] for l in lines if l[1] in mapper.keys()}
+            else:
+                vectors = {l[1] : mapper[l[2]] for l in lines if int(l[0]) == n and l[2] in mapper.keys()}
+
+    # individuals
     elif args.input_target_model == 'individuals':
         if args.experiment_id == 'one':
             sorted_infos = [experiment.trigger_to_info[k] for k in sorted(experiment.trigger_to_info.keys())]
@@ -135,6 +147,7 @@ def load_vectors(args, experiment, n):
             vectors = {k : k_i for k_i, k in enumerate(ordered_names)}
         vectors = minus_one_one_norm(vectors.items())
 
+    # orthographic values
     elif args.input_target_model == 'word_length':
         vectors = {w : len(w) for w in names}
         vectors = minus_one_one_norm(vectors.items())
@@ -147,6 +160,7 @@ def load_vectors(args, experiment, n):
         vectors = {k_one : numpy.average([levenshtein(k_one,k_two) for k_two in names if k_two!=k_one]) for k_one in names}
         vectors = minus_one_one_norm(vectors.items())
 
+    # norms
     elif args.input_target_model in ['imageability', 'familiarity']:
         fams = list()
         if args.experiment_id == 'two' and args.semantic_category_two != 'famous':
@@ -167,6 +181,7 @@ def load_vectors(args, experiment, n):
         vectors = {l[0] : float(l[1]) for l in lines}
         vectors = minus_one_one_norm(vectors.items())
 
+    # length of questionnaire / wiki pages
     elif args.input_target_model in ['sentence_lengths']: 
         ### reading file
         with open(os.path.join(
@@ -179,6 +194,7 @@ def load_vectors(args, experiment, n):
         vectors = {l[1] : float(l[2]) for l in lines if int(l[0]) == n}
         vectors = minus_one_one_norm(vectors.items())
 
+    # frequency in wiki
     elif 'frequency' in args.input_target_model:
         with open(os.path.join(
                                'all_models', 
@@ -188,12 +204,8 @@ def load_vectors(args, experiment, n):
         vectors = {l[0] : float(l[1]) for l in lines}
         vectors = minus_one_one_norm(vectors.items())
 
+    ### static models
     elif args.input_target_model in [ 
-                               'ITGPT2', 
-                               'gpt2-xl', 
-                               'xlm-roberta-large',
-                               'MBERT',
-                               'BERT_large',
                                'wikipedia2vec',
                                'transe',
                                'w2v',
@@ -206,48 +218,74 @@ def load_vectors(args, experiment, n):
             lines = [l.strip().split('\t') for l in i.readlines()][1:]
         vectors = {l[0] : numpy.array(l[1:], dtype=numpy.float64) for l in lines}
         for k, v in vectors.items():
-            #print(v.shape)
-            assert v.shape in [(300, ), (1024, ), (1280,), (768,), (1600,), (500,), (100,)]
+            assert v.shape in [
+                               # transe
+                               (100, ),
+                               # w2v, wikipedia2vec_it
+                               (300, ), 
+                               # w2v, wikipedia2vec_en
+                               (500,),
+                               ]
 
-    elif 'gold' in args.input_target_model or 'individuals' in args.input_target_model or 'model' in args.input_target_model or 'random' in args.input_target_model or '_all' in args.input_target_model or '_one' in args.input_target_model:
-        ### reading file
+    # contextualized
+    elif args.input_target_model in [ 
+                               # contextualized
+                               'ITGPT2', 
+                               'gpt2-xl', 
+                               'xlm-roberta-large',
+                               'MBERT',
+                               'BERT_large',
+                               # context-specific static
+                               'w2v_sentence',
+                               # norm-based
+                               'affective_sentence',
+                               'concreteness_sentence',
+                               'imageability_sentence',
+                               'perceptual_sentence',
+                               ]:
+        if args.experiment_id == 'one':
+            dataset_marker = 'full_corpus_all_vectors'
+        elif args.experiment_id == 'two':
+            dataset_marker = 'entity_sentences_all_vectors'
         file_path = os.path.join(
                                'all_models', 
-                               #'exp_{}_{}_{}_average_{}_entity_articles_limit_1seventh_vectors.tsv'.format(args.experiment_id, args.input_target_model, args.language, args.average))
-                               #'exp_{}_{}_{}_average_{}_entity_articles_limit_1fifth_vectors.tsv'.format(args.experiment_id, args.input_target_model, args.language, args.average))
-                               #'exp_{}_{}_{}_average_{}_entity_articles_limit_1fourth_vectors.tsv'.format(args.experiment_id, args.input_target_model, args.language, args.average))
-                               'exp_{}_{}_{}_average_24_entity_articles_limit_all_vectors.tsv'.format(args.experiment_id, args.input_target_model, args.language))
-        #if args.input_target_model in ['BERT_large_individuals', 'ITGPT2_individuals', 'xlm-roberta-large_individuals']:
-        if args.experiment_id == 'two':
-            file_path = file_path.replace('articles', 'sentences')
-        if args.experiment_id == 'one':
-            file_path = file_path.replace('entity_articles', 'full_corpus')
-
-        #file_path = file_path.replace('limit_20', 'exp')
+                               'exp_{}_{}_{}_{}.tsv'.format(
+                                                  args.experiment_id, 
+                                                  args.input_target_model, 
+                                                  args.language,
+                                                  dataset_marker
+                                                  )
+                               )
         print(file_path)
-        if args.average == -36:
-            file_path = file_path.replace('-36', '-12')
-        if 'individuals' in args.input_target_model or 'random' in args.input_target_model or '_all'  in args.input_target_model or '_one' in args.input_target_model:
-            file_path = file_path.replace('_300-500ms', '')
-            file_path = file_path.replace('_500-800ms', '')
         assert os.path.exists(file_path)
         with open(file_path) as i:
             lines = [l.strip().split('\t') for l in i.readlines()][1:]
         vectors = {l[1] : numpy.array(l[2:], dtype=numpy.float64) for l in lines if int(l[0]) == n}
            
         for k, v in vectors.items():
-            #print(v.shape)
-            #assert v.shape in [(300, ), (1024, ), (768,), (1600,), (500,), (100,)]
-            assert v.shape in [(3, ), (5, ), (1, ), (300, ), (1024, ), (1280,), (768,), (1600,), (500,), (100,)]
+            assert v.shape in [
+                               # concreteness_sentence, 
+                               # imageability_sentence,
+                               (1, ),
+                               # affective_sentence,
+                               (3, ),
+                               # perceptual_sentence
+                               (5, ),
+                               # w2v_sentence
+                               (300, ),
+                               # MBERT
+                               (768, ),
+                               # BERT_large
+                               (1024, ),
+                               # others
+                               (1280, ),
+                               (1600, ),
+                               ]
         if v.shape in [(1, )]:
             vectors = {k : v[0] for k, v in vectors.items()}
             vectors = minus_one_one_norm(vectors.items())
-        ### print correlation with length
 
-        #lengths = [abs(len(n)-len(n_two)) for n in names for n_two in names if n!=n_two]
-        #distances = [1 - scipy.stats.pearsonr(vectors[n], vectors[n_two])[0] for n in names for n_two in names if n!=n_two]
-        #corr = scipy.stats.pearsonr(lengths, distances)
-        #print('correlation model - length: {}'.format(corr))
+    # printing out similarities with categories
     if args.experiment_id == 'one' and args.semantic_category_two != 'individual':
         pass
     elif args.input_target_model == 'ceiling':
@@ -256,7 +294,14 @@ def load_vectors(args, experiment, n):
         for idx, cat in [(2, 'famous/familiar'), (1, 'person/place')]:
             famous_familiar = {v[0] : 0 if v[idx] in ['famous', 'person'] else 1 for v in experiment.trigger_to_info.values()}
             keyz = sorted(set(famous_familiar.keys()) & set(vectors.keys()))
-            if args.input_target_model in ['familiarity', 'imageability']:
+            if args.input_target_model == 'location':
+                assert len(keyz) == 16 
+            elif args.input_target_model == 'sex':
+                if args.experiment_id == 'one':
+                    assert len(keyz) == 20
+                else:
+                    assert len(keyz) == 16 
+            elif args.input_target_model in ['familiarity', 'imageability']:
                 if args.experiment_id == 'one':
                     assert len(keyz) == 32
                 else:
@@ -266,7 +311,6 @@ def load_vectors(args, experiment, n):
                     assert len(keyz) == 40
                 else:
                     assert len(keyz) == 32
-            #print(len(keyz))
             fam_fam_sims = [1 if famous_familiar[one]==famous_familiar[two] else 0 for one in keyz for two in keyz if one!=two] 
             if type(vectors[keyz[0]]) in [int, float, numpy.float64] or vectors[keyz[0]].shape == (1, ):
                 model_sims = [1-abs(float(vectors[one])-float(vectors[two])) for one in keyz for two in keyz if one!=two] 

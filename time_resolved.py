@@ -52,6 +52,12 @@ def prepare_data(all_args):
     if list(set([type(v) for v in comp_vectors.values()]))[0] in [int, float, numpy.float64]:
         clean_splits = list()
         for test_split in experiment.test_splits:
+            marker = False
+            for tr in test_split:
+                if experiment.trigger_to_info[tr][0] not in comp_vectors.keys():
+                    marker = True
+            if marker:
+                continue
             if comp_vectors[experiment.trigger_to_info[test_split[0]][0]] == comp_vectors[experiment.trigger_to_info[test_split[1]][0]]:
                 continue
             else:
@@ -63,7 +69,8 @@ def prepare_data(all_args):
     marker = False
     if args.experiment_id == 'two' and args.input_target_model == 'ceiling':
         marker = True
-    if args.input_target_model in ['familiarity', 'imageability']:
+    ### cases where not all stimuli are available
+    if args.input_target_model in ['familiarity', 'imageability', 'sex', 'location']:
         marker = True
     if marker:
         stimuli = [s for s in stimuli if s in comp_vectors.keys()]

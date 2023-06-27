@@ -1,7 +1,7 @@
 import os
 
-message = lambda item : 'python3 main.py --analysis {} --mapping_model {} --mapping_direction {} --input_target_model {} --experiment_id two --temporal_resolution 5 --semantic_category_one {} --semantic_category_two {} --data_kind erp --data_folder /import/cogsci/andrea/dataset/neuroscience/family_lexicon_eeg/ --searchlight_spatial_radius large_distance --searchlight_temporal_radius large --language {} --evaluation_method {} --average 24{}'.format(item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7], item[8])
-#message = lambda item : 'python3 main.py --analysis {} --mapping_model {} --mapping_direction {} --input_target_model {} --experiment_id one --temporal_resolution 5 --semantic_category_one {} --semantic_category_two {} --data_kind erp --data_folder /import/cogsci/andrea/dataset/neuroscience/exploring_individual_entities_eeg --searchlight_spatial_radius large_distance --searchlight_temporal_radius large --language {} --evaluation_method {} --average 24{}'.format(item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7], item[8])
+#message = lambda item : 'python3 main.py --analysis {} --mapping_model {} --mapping_direction {} --input_target_model {} --experiment_id two --temporal_resolution 5 --semantic_category_one {} --semantic_category_two {} --data_kind erp --data_folder /import/cogsci/andrea/dataset/neuroscience/family_lexicon_eeg/ --searchlight_spatial_radius large_distance --searchlight_temporal_radius large --language {} --evaluation_method {} --average 24{}'.format(item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7], item[8])
+message = lambda item : 'python3 main.py --analysis {} --mapping_model {} --mapping_direction {} --input_target_model {} --experiment_id one --temporal_resolution 5 --semantic_category_one {} --semantic_category_two {} --data_kind erp --data_folder /import/cogsci/andrea/dataset/neuroscience/exploring_individual_entities_eeg --searchlight_spatial_radius large_distance --searchlight_temporal_radius large --language {} --evaluation_method {} --average 24{}'.format(item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7], item[8])
 
 lang_agnostic = [
           'famous_familiar',
@@ -32,8 +32,10 @@ models = [
           #'log_frequency',
           #'orthography',
           #'ceiling',
-          'imageability',
-          'familiarity',
+          #'imageability',
+          #'familiarity',
+          #'sex',
+          'location',
 
           #'wikipedia2vec_sentence_individuals',
           #'affective_individuals',
@@ -64,8 +66,8 @@ models = [
           ]
 
 analyses = [
+            'time_resolved',
             'searchlight',
-            #'time_resolved'
             ]
 
 languages = [
@@ -82,15 +84,15 @@ corrections = [
                #''
                ]
 categories = [
-              'all',
+              #'all',
               'place', 
-              'person', 
+              #'person', 
               ]
 categories_two = [
                   #'all',
                   #'familiar', 
-                  'famous', 
-                  #'individual',
+                  #'famous', 
+                  'individual',
                   #'category',
                   ]
 #categories_two = [
