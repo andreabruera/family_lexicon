@@ -246,7 +246,7 @@ def load_vectors(args, experiment, n):
         if args.experiment_id == 'one':
             dataset_marker = 'full_corpus_all_vectors'
         elif args.experiment_id == 'two':
-            dataset_marker = 'entity_sentences_all_vectors'
+            dataset_marker = 'entity_sentences_content_all_vectors'
         file_path = os.path.join(
                                'all_models', 
                                'exp_{}_{}_{}_{}.tsv'.format(
