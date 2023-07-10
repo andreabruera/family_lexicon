@@ -54,8 +54,8 @@ plots = [
          ]
 
 eval_methods = [
-                #'pairwise',
-                'correlation',
+                'pairwise',
+                #'correlation',
                 ]
 
 directions = [

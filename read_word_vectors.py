@@ -64,8 +64,12 @@ def load_vectors(args, experiment, n):
 
     names = [v[0] for v in experiment.trigger_to_info.values()]
 
+    if args.input_target_model == 'response_times':
+        vectors = {n : numpy.nanmean(v) for n, v in experiment.response_times[n].items()}
+        vectors = minus_one_one_norm(vectors.items())
+
     ### ceiling: mapping to avg of other subjects
-    if args.input_target_model == 'ceiling':
+    elif args.input_target_model == 'ceiling':
         ceiling = dict()
         for n_ceiling in range(1, 34):
             eeg_data_ceiling = LoadEEG(args, experiment, n_ceiling)

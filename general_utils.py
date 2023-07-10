@@ -180,6 +180,7 @@ def read_args():
                         required=True,
                         choices=[
                                  'ceiling',
+                                 'response_times',
                                  ### Category
                                  'coarse_category',
                                  'famous_familiar',

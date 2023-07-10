@@ -56,7 +56,7 @@ class ExperimentInfo:
         self.subjects = 33
         self.current_subject = subject
         self.eeg_paths = self.generate_eeg_paths(args)
-        self.events_log, self.trigger_to_info = self.read_events_log()
+        self.events_log, self.trigger_to_info, self.response_times = self.read_events_log()
         self.test_splits = self.generate_test_splits()
 
     def generate_eeg_paths(self, args):
@@ -144,8 +144,21 @@ class ExperimentInfo:
                 if t in trig_to_info.keys():
                     assert trig_to_info[t] == infos
                 trig_to_info[t] = infos
+        ### loading response times
 
-        return full_log, trig_to_info
+        response_times = {s : dict() for s in range(1, self.subjects+1)}
+        for sub, stim, t in zip(
+                                full_log['subject'], 
+                                full_log['trial_type'], 
+                                full_log['response_time']
+                                ):
+            if t != 'na':
+                if stim not in response_times[int(sub)].keys():
+                    response_times[int(sub)][stim] = [float(t)]
+                else:
+                    response_times[int(sub)][stim].append(float(t))
+
+        return full_log, trig_to_info, response_times
 
     def generate_test_splits(self):
 
