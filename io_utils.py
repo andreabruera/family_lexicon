@@ -194,7 +194,7 @@ class ExperimentInfo:
             comparisons[kv[0]].append(p)
 
         ### writing comparisons to file
-        with open(os.path.join('plots', 'behavioural_averages.txt'), 'w') as o:
+        with open(os.path.join('behavioural_averages_exp_{}.txt'.format(self.experiment_id)), 'w') as o:
             o.write('accuracies\n\n')
             for k, v in accuracies.items():
                 acc = sum(v) / len(v)
