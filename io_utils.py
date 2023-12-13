@@ -12,6 +12,7 @@ import random
 import scipy
 
 from matplotlib import pyplot
+from mne import stats
 from nilearn import image
 from scipy import stats
 from tqdm import tqdm
@@ -147,16 +148,91 @@ class ExperimentInfo:
         ### loading response times
 
         response_times = {s : dict() for s in range(1, self.subjects+1)}
-        for sub, stim, t in zip(
+        cat_response_times = dict()
+        general_response_times = dict()
+        accuracies = dict()
+        for sub, stim, t, acc, sem, fam in zip(
                                 full_log['subject'], 
                                 full_log['trial_type'], 
-                                full_log['response_time']
+                                full_log['response_time'],
+                                full_log['accuracy'],
+                                full_log['semantic_domain'],
+                                full_log['familiarity'],
                                 ):
             if t != 'na':
                 if stim not in response_times[int(sub)].keys():
                     response_times[int(sub)][stim] = [float(t)]
                 else:
                     response_times[int(sub)][stim].append(float(t))
+                if '{}_{}'.format(sem, fam) not in cat_response_times.keys():
+                    cat_response_times['{}_{}'.format(sem, fam)] = [float(t)]
+                    accuracies['{}_{}'.format(sem, fam)] = [float(acc)]
+                else:
+                    cat_response_times['{}_{}'.format(sem, fam)].append(float(t))
+                    accuracies['{}_{}'.format(sem, fam)].append(float(acc))
+                for val in [sem, fam]:
+                    if val not in cat_response_times.keys():
+                        cat_response_times[val] = [float(t)]
+                        accuracies[val] = [float(acc)]
+                    else:
+                        cat_response_times[val].append(float(t))
+                        accuracies[val].append(float(acc))
+
+        ### statistical comparisons
+        comparisons = dict()
+        for k_one, v_one in cat_response_times.items():
+            for k_two, v_two in cat_response_times.items():
+                if k_one == k_two:
+                    continue
+                if tuple(sorted([k_one, k_two])) in [tuple(sorted(v)) for v in comparisons.keys()]:
+                    continue
+                comp = scipy.stats.ttest_ind(v_one, v_two)
+                comparisons[(k_one, k_two)] = [comp.statistic, comp.pvalue]
+        ps = [v[1] for k, v in comparisons.items()]
+        corr_ps = mne.stats.fdr_correction(ps)[1]
+        for kv, p in zip(comparisons.items(), corr_ps):
+            comparisons[kv[0]].append(p)
+
+        ### writing comparisons to file
+        with open(os.path.join('plots', 'behavioural_averages.txt'), 'w') as o:
+            o.write('accuracies\n\n')
+            for k, v in accuracies.items():
+                acc = sum(v) / len(v)
+                o.write('{}\t{}\n'.format(k, acc))
+            o.write('\n\nresponse times\n\n')
+            o.write('cat\tavg\tstd\n')
+            for k, v in cat_response_times.items():
+                o.write('{}\t{}\t{}\n'.format(k, numpy.average(v), numpy.std(v)))
+            o.write('response times comparisons\n\n')
+            o.write('cats\tt\toriginal p\tcorrected p\n')
+            for k, vals in comparisons.items():
+                o.write('{}\t{}\t{}\t{}\n'.format(k, vals[0], vals[1], vals[2]))
+
+        ### writing to file for R, if file is not there
+        out_file = os.path.join('data', 'r_file_exp_{}.tsv'.format(self.experiment_id))
+        if not os.path.exists(out_file):
+            ### setting the mapper
+            mapper = {
+                      'trial_type' : {k : len(k) for k in full_log['trial_type']},
+                      'value' : {v: k for k, v in enumerate(sorted(list(set(full_log['value']))))},
+                      'semantic_domain' : {'person' : -1, 'place' : 1}, 
+                      'familiarity' : {'famous' : -1, 'familiar' : 1},
+                      }
+            keys = [v for v in list(full_log.keys()) if v not in ['onset', 'duration']]
+            with open(out_file, 'w') as o:
+                for w in keys:
+                    if w == 'trial_type':
+                        w = 'name_length'
+                    o.write('{}\t'.format(w))
+                o.write('\n')
+                for i in range(len(full_log['value'])):
+                    for k in keys:
+                        val = full_log[k][i]
+                        if k in mapper.keys():
+                            val = mapper[k][val]
+                        o.write('{}\t'.format(val))
+                    o.write('\n')
+
 
         return full_log, trig_to_info, response_times
 
@@ -334,9 +410,11 @@ class LoadEEG:
             #                                  )
 
         ### Scaling 
-        epochs_array = mne.decoding.Scaler(epochs.info, \
-                    scalings='mean'\
-                    ).fit_transform(epochs_array)
+        epochs_array = mne.decoding.Scaler(
+                                        epochs.info,
+                                        #scalings='median',
+                                        scalings='mean',
+                                          ).fit_transform(epochs_array)
         ### Collecting the data shape
         data_shape = epochs_array.shape[1:]
 

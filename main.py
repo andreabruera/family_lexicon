@@ -10,7 +10,7 @@ import sklearn
 
 from tqdm import tqdm
 
-from general_utils import how_many_cores, read_args
+from general_utils import how_many_cores, plot_erps, plot_scalp_erps, read_args
 from io_utils import ExperimentInfo, LoadEEG, tfr_frequencies
 
 from plot_classification import plot_classification
@@ -50,6 +50,11 @@ if args.plot:
 else:
 
     experiment = ExperimentInfo(args)
+
+    ### plotting erps
+    plot_erps(args)
+    #plot_scalp_erps(args, searchlight_clusters)
+    import pdb; pdb.set_trace()
 
     if __name__ == '__main__':
 

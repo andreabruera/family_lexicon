@@ -1,7 +1,7 @@
 import os
 
-#message = lambda item : 'python3 main.py --analysis {} --mapping_model {} --mapping_direction {} --input_target_model {} --experiment_id two --temporal_resolution 5 --semantic_category_one {} --semantic_category_two {} --data_kind erp --data_folder /import/cogsci/andrea/dataset/neuroscience/family_lexicon_eeg/ --searchlight_spatial_radius large_distance --searchlight_temporal_radius large --language {} --evaluation_method {} --average 24{}'.format(item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7], item[8])
-message = lambda item : 'python3 main.py --analysis {} --mapping_model {} --mapping_direction {} --input_target_model {} --experiment_id one --temporal_resolution 5 --semantic_category_one {} --semantic_category_two {} --data_kind erp --data_folder /import/cogsci/andrea/dataset/neuroscience/exploring_individual_entities_eeg --searchlight_spatial_radius large_distance --searchlight_temporal_radius large --language {} --evaluation_method {} --average 24{}'.format(item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7], item[8])
+message = lambda item : 'python3 main.py --analysis {} --mapping_model {} --mapping_direction {} --input_target_model {} --experiment_id two --temporal_resolution 5 --semantic_category_one {} --semantic_category_two {} --data_kind erp --data_folder /import/cogsci/andrea/dataset/neuroscience/family_lexicon_eeg/ --searchlight_spatial_radius large_distance --searchlight_temporal_radius large --language {} --evaluation_method {} --average 24{}'.format(item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7], item[8])
+#message = lambda item : 'python3 main.py --analysis {} --mapping_model {} --mapping_direction {} --input_target_model {} --experiment_id one --temporal_resolution 5 --semantic_category_one {} --semantic_category_two {} --data_kind erp --data_folder /import/cogsci/andrea/dataset/neuroscience/exploring_individual_entities_eeg --searchlight_spatial_radius large_distance --searchlight_temporal_radius large --language {} --evaluation_method {} --average 24{}'.format(item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7], item[8])
 
 lang_agnostic = [
           'famous_familiar',
@@ -21,15 +21,15 @@ lang_agnostic = [
           ]
 models = [
           'response_times',
-          #'w2v_sentence_individuals',
           #'w2v',
           #'xlm-roberta-large',
+          #'w2v_sentence',
           #'famous_familiar',
           #'fine_category',
           #'coarse_category',
           #'wikipedia2vec',
           #'transe',
-          #'BERT_large_individuals',
+          #'BERT_large',
           #'word_length',
           #'log_frequency',
           #'orthography',
@@ -38,10 +38,10 @@ models = [
           #'familiarity',
           #'sex',
           #'location',
+          #'perceptual_sentence',
+          #'affective_sentence',
 
           #'wikipedia2vec_sentence_individuals',
-          #'affective_individuals',
-          #'perceptual_individuals',
           #'valence_individuals',
           #'arousal_individuals',
           #'concreteness_individuals',
@@ -69,7 +69,7 @@ models = [
 
 analyses = [
             'time_resolved',
-            'searchlight',
+            #'searchlight',
             ]
 
 languages = [
@@ -86,16 +86,16 @@ corrections = [
                #''
                ]
 categories = [
-              'person', 
-              'place', 
               'all',
+              'place', 
+              'person', 
               ]
 categories_two = [
-                  #'familiar', 
-                  #'famous', 
-                  'individual',
                   'all',
-                  'category',
+                  'familiar', 
+                  'famous', 
+                  #'individual',
+                  #'category',
                   ]
 #categories_two = [
 #                  'all',
@@ -109,6 +109,7 @@ plots = [
 eval_methods = [
                 #'pairwise',
                 'correlation',
+                #'r_squared',
                 ]
 
 directions = [
@@ -123,7 +124,7 @@ for direction in directions:
         for eval_method in eval_methods:
             for model in models:
                 for lang in languages:
-                    if ('IT' in model or 'xlm' in model) and lang == 'en':
+                    if ('IT' in model) and lang == 'en':
                         continue
                     if ('BERT' in model or 'gpt2' in model) and lang == 'it':
                         continue
@@ -150,6 +151,6 @@ for direction in directions:
                                         #    os.system('{}{} --cores_usage min'.format(current_message, plot))
                                         #else:
                                         #    os.system('{}{}'.format(current_message, plot))
-                                        os.system('{}{}'.format(current_message, plot))
+                                        #os.system('{}{}'.format(current_message, plot))
                                         #os.system('{}{} --comparison'.format(current_message, plot))
-                                        #os.system('{}{} --debugging'.format(current_message, plot))
+                                        os.system('{}{} --debugging'.format(current_message, plot))

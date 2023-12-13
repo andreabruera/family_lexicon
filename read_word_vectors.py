@@ -65,7 +65,7 @@ def load_vectors(args, experiment, n):
     names = [v[0] for v in experiment.trigger_to_info.values()]
 
     if args.input_target_model == 'response_times':
-        vectors = {n : numpy.nanmean(v) for n, v in experiment.response_times[n].items()}
+        vectors = {k : numpy.nanmean(v) for k, v in experiment.response_times[n].items()}
         vectors = minus_one_one_norm(vectors.items())
 
     ### ceiling: mapping to avg of other subjects
@@ -248,9 +248,19 @@ def load_vectors(args, experiment, n):
                                'perceptual_sentence',
                                ]:
         if args.experiment_id == 'one':
-            dataset_marker = 'full_corpus_all_vectors'
+            #dataset_marker = 'full_corpus_all_words_all_vectors'
+            dataset_marker = 'entity_articles_all_words_all_vectors'
         elif args.experiment_id == 'two':
-            dataset_marker = 'entity_sentences_content_all_vectors'
+            if args.input_target_model in [
+                                           'affective_sentence', 
+                                           'perceptual_sentence',
+                                           'imageability_sentence',
+                                           'perceptual_sentence',
+                                           ]:
+                dataset_marker = 'entity_sentences_all_vectors'
+            else:
+                dataset_marker = 'entity_sentences_content_words_all_vectors'
+                #dataset_marker = 'entity_sentences_all_words_all_vectors'
         file_path = os.path.join(
                                'all_models', 
                                'exp_{}_{}_{}_{}.tsv'.format(
@@ -264,7 +274,8 @@ def load_vectors(args, experiment, n):
         assert os.path.exists(file_path)
         with open(file_path) as i:
             lines = [l.strip().split('\t') for l in i.readlines()][1:]
-        vectors = {l[1] : numpy.array(l[2:], dtype=numpy.float64) for l in lines if int(l[0]) == n}
+        #vectors = {l[1] : numpy.array(l[2:], dtype=numpy.float64) for l in lines if int(l[0]) in [n, 'all']}
+        vectors = {l[1] : numpy.array(l[2:], dtype=numpy.float64) for l in lines if l[1] in names and l[0] in ['{}'.format(n), 'all']}
            
         for k, v in vectors.items():
             assert v.shape in [
@@ -334,8 +345,8 @@ def zero_one_norm(vectors):
 def minus_one_one_norm(vectors):
     labels = [k[1] for k in vectors]
     names = [k[0] for k in vectors]
-    norm_labels = [int(2*((x-min(labels))/(max(labels)-min(labels)))-1) for x in labels]
+    norm_labels = [2*((x-min(labels))/(max(labels)-min(labels)))-1 for x in labels]
     assert min(norm_labels) == -1
     assert max(norm_labels) == 1
-    vectors = {n : l for n, l in zip(names, labels)}
+    vectors = {n : l for n, l in zip(names, norm_labels)}
     return vectors

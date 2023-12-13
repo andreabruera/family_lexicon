@@ -63,8 +63,8 @@ def group_searchlight(args):
                 ### reducing relevant time points
                 ### following leonardelli & fairhall, range is 100-750ms
 
-                #upper_limit = 0.8 if args.experiment_id == 'two' else 1.2
-                upper_limit = 1.2 if args.experiment_id == 'two' else 1.2
+                upper_limit = 0.8 if args.experiment_id == 'two' else 1.2
+                #upper_limit = 1.2 if args.experiment_id == 'two' else 1.2
                 lower_limit = 0.0 if args.experiment_id == 'two' else 0.
                 #lower_limit = 0.3 if args.experiment_id == 'two' else .3
                 relevant_indices = [t_i for t_i, t in enumerate(times) if (t>lower_limit and t<upper_limit)]
@@ -228,18 +228,28 @@ def group_searchlight(args):
             else:
                 vmax = 0.2
 
+        if args.input_target_model == 'coarse_category':
+            cmap = 'BuGn'
+        elif args.input_target_model == 'famous_familiar':
+            cmap = 'PuRd'
         evoked.plot_topomap(ch_type='eeg', 
                             time_unit='s', 
                             times=evoked.times,
                             ncols='auto',
                             nrows='auto', 
                             vmax=vmax,
-                            vmin=0.,
-                            scalings={'eeg':1.}, 
-                            cmap='Spectral_r',
+                            vmin=0.02,
+                            scalings={'eeg':.5}, 
+                            cmap=cmap,
+                            #cmap='Spectral_r',
                             mask=reshaped_p<=significance,
-                            mask_params=dict(marker='o', markerfacecolor='black', markeredgecolor='black',
-                                        linewidth=0, markersize=4),
+                            mask_params=dict(
+                                          marker='o', 
+                                          markerfacecolor='black', 
+                                          markeredgecolor='black',
+                                          linewidth=0, 
+                                          markersize=4,
+                                          ),
                             #colorbar=False,
                             size = 3.,
                             title=title,
@@ -259,8 +269,8 @@ def group_searchlight(args):
             f_name = f_name.replace(args.input_target_model, '{}_{}'.format(args.input_target_model, args.language))
         if args.comparison:
             f_name = f_name.replace('.jpg', '_comparison.jpg')
-        print(f_name)
         f_name = os.path.join(plot_path, f_name)
+        print(f_name)
         pyplot.savefig(f_name, dpi=600)
         pyplot.savefig(f_name.replace('jpg', 'svg'), dpi=600)
         pyplot.clf()

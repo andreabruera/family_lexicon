@@ -261,8 +261,12 @@ def plot_classification(args):
             #ymin = -.1
             #ymax = .15
             #ymax = .25
-            ymin = -.05
-            ymax = .15
+            if args.evaluation_method == 'r_squared':
+                ymin = -5
+                ymax = -1
+            else:
+                ymin = -.05
+                ymax = .15
             ax[0].set_ylim(bottom=ymin, top=ymax)
         if random_baseline == 0.5:
             correction = 0.02
