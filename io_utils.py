@@ -196,6 +196,8 @@ class ExperimentInfo:
         ### writing comparisons to file
         with open(os.path.join('behavioural_averages_exp_{}.txt'.format(self.experiment_id)), 'w') as o:
             o.write('accuracies\n\n')
+            overall = [val for v in accuracies.values() for val in v]
+            o.write('overall\t{}\n'.format(sum(overall)/len(overall)))
             for k, v in accuracies.items():
                 acc = sum(v) / len(v)
                 o.write('{}\t{}\n'.format(k, acc))
