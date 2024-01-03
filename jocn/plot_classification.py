@@ -136,18 +136,15 @@ def plot_classification(args):
     ### Main plot properties
 
     ##### Title (usually not set)
-    title = 'Classification scores for {} data\n'\
+    title = 'Classification scores for ERP data\n'\
                     'type of analysis {}'.format(
-                    args.data_kind, args.analysis)
+                    args.analysis)
     title = title.replace('_', ' ')
     #ax[0].set_title(title)
 
     ##### Axes
     ax[0].set_xlabel('Time', labelpad=10.0, fontweight='bold')
-    if args.mapping_direction == 'correlation':
-        ylabel = 'Pearson correlation'
-    else:
-        ylabel = 'Classification accuracy'
+    ylabel = 'Classification accuracy'
     ax[0].set_ylabel(ylabel, labelpad=10.0, fontweight='bold')
 
     #### Random baseline line

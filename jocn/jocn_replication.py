@@ -9,13 +9,14 @@ message = lambda item : 'python3 main.py '\
                         '--semantic_category_one {} '\
                         '--semantic_category_two {} '\
                         '--data_folder {} '\
-                        ''.format(
+                        '{}'.format(
                                     item[0], 
                                     item[1], 
                                     item[2], 
                                     item[3], 
                                     item[4], 
                                     data_folder, 
+                                    correc
                                     )
 
 models = [
@@ -85,6 +86,6 @@ for analysis in analyses:
                         else:
                             already_done.append(comb)
 
-                        current_message = message([analysis, mapping, model, cat, category_two])
+                        current_message = message([analysis, mapping, model, cat, category_two, correc])
                         if analysis == 'searchlight' and cat == category_two and cat == 'all':
                             os.system('{} --comparison --plot'.format(current_message))
