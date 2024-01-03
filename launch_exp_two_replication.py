@@ -30,7 +30,7 @@ categories_two = [
                   ]
 plots = [
          ' ', 
-         ' --plot'
+         #' --plot'
          ]
 
 analyses = ['time_resolved', 'searchlight']
@@ -52,8 +52,8 @@ for analysis in analyses:
                                 already_done.append(comb)
 
                             current_message = message([analysis, mapping, model, cat, category_two, lang, correc])
-                            for plot in plots:
-                                os.system('{}{}'.format(current_message, plot))
+                            #for plot in plots:
+                            #    os.system('{}{}'.format(current_message, plot))
                             #    #os.system('{}{} --debugging'.format(current_message, plot))
                             if analysis == 'searchlight':
                                 os.system('{} --comparison --plot'.format(current_message))

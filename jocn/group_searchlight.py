@@ -1,17 +1,10 @@
-import argparse
 import os
-import collections
 import numpy
 import re
 import logging
 import itertools
-import functools
 import mne
-import pickle
-import scipy
-import multiprocessing
 
-from scipy import stats
 from matplotlib import pyplot
 from tqdm import tqdm
 
@@ -22,25 +15,20 @@ from searchlight import SearchlightClusters
 def group_searchlight(args):
 
     plot_path = prepare_folder(args).replace('results', 'plots')
+    significance = .05
 
     ### comparing models
     if args.comparison:
-        if args.input_target_model not in ['famous_familiar', 'coarse_category']:
-            models = ['xlm-roberta-large_individuals', args.input_target_model]
-        elif args.input_target_model == 'famous_familiar':
+        if args.input_target_model == 'famous_familiar':
             models = ['person', 'place']
         elif args.input_target_model == 'coarse_category':
             models = ['familiar', 'famous']
         collector = dict()
         for m in models:
-            if args.input_target_model not in ['famous_familiar', 'coarse_category']:
-                args.input_target_model = m
-            elif args.input_target_model == 'famous_familiar':
+            if args.input_target_model == 'famous_familiar':
                 args.semantic_category_one = m
             elif args.input_target_model == 'coarse_category':
                 args.semantic_category_two = m
-            #significance = .005
-            #significance = 0.1
             clusters = SearchlightClusters(args)
             electrode_index_to_code = clusters.index_to_code
             mne_adj_matrix = clusters.mne_adjacency_matrix
@@ -63,12 +51,7 @@ def group_searchlight(args):
                 ### reducing relevant time points
                 ### following leonardelli & fairhall, range is 100-750ms
 
-                upper_limit = 0.8 if args.experiment_id == 'two' else 1.2
-                #upper_limit = 1.2 if args.experiment_id == 'two' else 1.2
-                lower_limit = 0.0 if args.experiment_id == 'two' else 0.
-                #lower_limit = 0.3 if args.experiment_id == 'two' else .3
                 relevant_indices = [t_i for t_i, t in enumerate(times) if (t>lower_limit and t<upper_limit)]
-                #relevant_indices = [t_i for t_i, t in enumerate(times) if t>0.]
                 times = times[relevant_indices]
                 electrodes = electrodes[relevant_indices, :]
 
@@ -77,9 +60,7 @@ def group_searchlight(args):
             random_baseline = return_baseline(args) 
             all_subjects = numpy.array(all_subjects) - random_baseline
             collector[m] = numpy.ones(shape=all_subjects.shape) - all_subjects
-        if args.input_target_model not in ['famous_familiar', 'coarse_category']:
-            all_subjects = collector[m] - collector['xlm-roberta-large_individuals']
-        elif args.input_target_model == 'famous_familiar':
+        if args.input_target_model == 'famous_familiar':
             all_subjects = collector[m] - collector['person']
             args.semantic_category_one = 'all'
         elif args.input_target_model == 'coarse_category':
@@ -112,10 +93,9 @@ def group_searchlight(args):
             electrodes = numpy.array([[float(v) for v in l] for l in lines[1:]]).T
             assert electrodes.shape == (len(times), 128)
             ### reducing relevant time points
-            ### following leonardelli & fairhall, range is 100-750ms
 
-            upper_limit = 0.8 if args.experiment_id == 'two' else 1.2
-            lower_limit = 0.0 if args.experiment_id == 'two' else 0.
+            upper_limit = 0.8
+            lower_limit = 0.0
             relevant_indices = [t_i for t_i, t in enumerate(times) if (t>lower_limit and t<upper_limit)]
             times = times[relevant_indices]
             electrodes = electrodes[relevant_indices, :]
@@ -135,7 +115,6 @@ def group_searchlight(args):
                                                        )
     logging.info('Minimum p-value for {}: {}'.format(args.input_target_model, min(p_values)))
 
-    significance = .05
     original_shape = t_stats.shape
     avged_subjects = numpy.average(all_subjects, axis=0)
     assert avged_subjects.shape == original_shape
@@ -159,16 +138,7 @@ def group_searchlight(args):
 
         #relevant_times
         tmin = times[0]
-        if args.data_kind != 'time_frequency':
-            if args.searchlight_temporal_radius == 'large':
-                sfreq = 10
-            elif args.searchlight_temporal_radius == 'medium':
-                sfreq = 20 
-            elif args.searchlight_temporal_radius == 'small':
-                sfreq = 40
-
-        elif args.data_kind == 'time_frequency':
-            sfreq = 256 / 16
+        sfreq = 10
         info = mne.create_info(
                                ch_names=[v for k, v in clusters.index_to_code.items()],
                                sfreq=sfreq,
@@ -193,22 +163,10 @@ def group_searchlight(args):
         title='Searchlight for {} - {}'.format(args.input_target_model, args.semantic_category_one)
         title = '{} - {}, p<={}'.format(title, correction, significance)
 
-        if args.evaluation_method == 'correlation':
-            if args.semantic_category_one == args.semantic_category_two:
-                if args.comparison:
-                    vmax = 0.05
-                else:
-                    vmax = 0.1
-            else:
-                if args.comparison:
-                    vmax = 0.05
-                else:
-                    vmax = 0.12
+        if args.comparison:
+            vmax = 0.1
         else:
-            if args.comparison:
-                vmax = 0.1
-            else:
-                vmax = 0.2
+            vmax = 0.2
 
         if args.input_target_model == 'coarse_category':
             cmap = 'BuGn'
@@ -254,7 +212,7 @@ def group_searchlight(args):
         f_name = os.path.join(plot_path, f_name)
         print(f_name)
         pyplot.savefig(f_name, dpi=600)
-        pyplot.savefig(f_name.replace('jpg', 'svg'), dpi=600)
+        #pyplot.savefig(f_name.replace('jpg', 'svg'), dpi=600)
         pyplot.clf()
 
         txt_path = f_name.replace('jpg', 'txt')

@@ -1,9 +1,13 @@
 plots/
 results/
 */exp_two_*
+jocn/results/
+jocn/plots/
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
+*/__pycache__/
 *.py[cod]
 *$py.class
 
