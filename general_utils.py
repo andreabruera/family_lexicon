@@ -725,56 +725,21 @@ def plot_erps(args):
                 experiment = ExperimentInfo(args, subject=across_n)
                 ### Loading the EEG data
                 eeg = LoadEEG(args, experiment, across_n)
-                '''
-                ### removing word length as a confound
-                all_sub_data = [(k, v) for k, v in eeg.data_dict.items()]
-                all_lengths = [(k, len(experiment.trigger_to_info[k][0])) for k, v in all_sub_data]
-                ###
-                deconfounded_data = dict()
-                for k, v in all_sub_data:
-                    new_v = list()
-                    for t in range(v.shape[-1]):
-                        t_sub_data = [(k, v[:, t]) for k, v in all_sub_data]
-                        train_input = [e[:, t] for e_k, e in all_sub_data if e_k!=k]
-                        #train_target = [e for e_k, e in all_lengths if e_k!=k]
-                        cfr = ConfoundRegressor(
-                                               confound=numpy.array([v[1] for v in all_lengths]), 
-                                               X=numpy.array([v[1] for v in t_sub_data]),
-                                               )
-                        cfr.fit(numpy.array(train_input))
-                        ### because of a bug prediction should input 2 vecz
-                        pred = cfr.transform(numpy.array([v[:, t], v[:,t]]))[0]
-                        new_v.append(pred)
-                    deconfounded_data[k] = numpy.array(new_v).T
-                    assert deconfounded_data[k].shape == v.shape
-                '''
                 deconfounded_data = eeg.data_dict
 
                 familiarity_mapper = {int(k) : v for k, v in zip(experiment.events_log['value'], experiment.events_log['familiarity'])}
                 category_mapper = {int(k) : v for k, v in zip(experiment.events_log['value'], experiment.events_log['semantic_domain'])}
-                #for k, v in eeg.data_dict.items():
                 for k, v in deconfounded_data.items():
                     key = '{}_{}'.format(category_mapper[k], familiarity_mapper[k])
                     try:
                         erp_data[key].append(v)
-                        #erp_data[key].append(numpy.average(v, axis=0))
-                        #erp_data[key] = numpy.row_stack([erp_data[key], numpy.array(v.reshape(1, v.shape[-2], v.shape[-1]))])
                     except KeyError:
                         erp_data[key] = [v]
-                        #erp_data[key] = [numpy.average(v, axis=0)]
-                        #erp_data[key] = numpy.array(v.reshape(1, v.shape[-2], v.shape[-1]))
-                    #print(erp_data[key].shape)
-            #erp_data = {k : numpy.array(v) for k, v in erp_data.items()}
-            palette = ColorblindPalette()
             colors = {
-                      'person famous' : palette.green,
-                      'person familiar' : palette.black,
-                      'place famous' : palette.purple,
-                      'place familiar' : palette.red,
-                      #'person' : palette.orange,
-                      #'place' : palette.blue,
-                      #'famous' : palette.celeste,
-                      #'familiar' : palette.yellow,
+                      'person famous' : 'green',
+                      'person familiar' : 'black',
+                      'place famous' : 'purple',
+                      'place familiar' : 'red',
                       'person' : 'rebeccapurple',
                       'place' : 'burlywood',
                       'famous' : 'goldenrod',
@@ -803,33 +768,6 @@ def plot_erps(args):
                                 data[key] = erp_data[key]
                             assert len(keys) == 2
                             new_k = k
-                        '''
-                        ### preparing dataset
-                        flattened_data = [(c, e) for c, lst in data.items() for e in lst]
-                        input_data = [v[1] for v in flattened_data]
-                        target_data = sklearn.preprocessing.LabelEncoder().fit_transform(y=[v[0] for v in flattened_data])
-                        all_scores = list()
-                        #for s in tqdm(range(1, 33+1)):
-                        for s in tqdm(range(1, 3+1)):
-                            s_scores = list()
-                            for t in tqdm(range(len(eeg.times))):
-                                s_data = [e[s, :, t] for e in input_data]
-                                t_scores = list()
-                                for _ in range(10):
-                                    test_idxs = list(random.sample(range(len(s_data)), k=2))
-                                    t_train_input = [e for e_i, e in enumerate(input_data) if e_i not in test_idxs]
-                                    t_train_target = [l for l_i, l in enumerate(target_data) if l_i not in test_idxs]
-                                    t_test_input = [input_data[e_i] for e_i in test_idxs]
-                                    t_test_target = [target_data[e_i] for e_i in test_idxs]
-                                    ridge = sklearn.linear_model.RidgeClassifierCV(alphas=(0.01, 0.1, 1, 10, 100, 1000))
-                                    ridge.fit(t_train_input, t_train_target)
-                                    score = ridge.score(t_test_input, t_test_target)
-                                    t_scores.append(score)
-                                t_scores = numpy.average(t_scores)
-                                s_scores.append(t_scores)
-                            all_scores.append(s_scores)
-                        import pdb; pdb.set_trace()
-                        '''
 
                         for zone_n, zone_label in zone_names.items():
                             zone_elecs = zones[zone_n]
