@@ -196,12 +196,13 @@ def group_searchlight(args):
                             )
 
         ### building the file name
-        f_name = '{}_{}_{}_spatial_{}_temporal_{}_{}.jpg'.format(
+        f_name = '{}_{}_{}_average{}_{}.jpg'.format(
                                       args.input_target_model, 
                                       args.semantic_category_one, 
                                       args.semantic_category_two,
-                                      args.searchlight_spatial_radius,
-                                      args.searchlight_temporal_radius,
+                                      #args.searchlight_spatial_radius,
+                                      #args.searchlight_temporal_radius,
+                                      args.average,
                                       correction, 
                                       )
 

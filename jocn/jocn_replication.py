@@ -41,7 +41,7 @@ categories_two = [
                   'familiar', 
                   'famous', 
                   'all',
-                  ]
+                 ]
 plots = [
          ' ', 
          ' --plot'
@@ -69,7 +69,7 @@ for analysis in analyses:
 
                         current_message = message([analysis, mapping, model, cat, category_two])
                         for plot in plots:
-                            os.system('{}{} --average 12'.format(current_message, plot))
+                            os.system('{}{}'.format(current_message, plot))
                             #os.system('{}{} --debugging'.format(current_message, plot))
 ## comparisons
 already_done = list()

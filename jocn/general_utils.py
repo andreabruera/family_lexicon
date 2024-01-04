@@ -414,12 +414,11 @@ def plot_erps(args):
                         erp_data[key].append(v)
                     except KeyError:
                         erp_data[key] = [v]
-            palette = ColorblindPalette()
             colors = {
-                      'person famous' : palette.green,
-                      'person familiar' : palette.black,
-                      'place famous' : palette.purple,
-                      'place familiar' : palette.red,
+                      'person famous' : 'green',
+                      'person familiar' : 'black',
+                      'place famous' : 'purple',
+                      'place familiar' : 'red',
                       'person' : 'rebeccapurple',
                       'place' : 'burlywood',
                       'famous' : 'goldenrod',
