@@ -1,6 +1,6 @@
 import os
 
-data_folder = '/import/cogsci/andrea/dataset/neuroscience/family_lexicon_eeg/'
+data_folder = '../family_lexicon_eeg/'
 
 message = lambda item : 'python3 main.py '\
                         '--analysis {} '\
