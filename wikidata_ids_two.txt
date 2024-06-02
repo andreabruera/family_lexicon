@@ -1,0 +1,19 @@
+entity	wikidata_id
+Barack Obama	Q76	
+Hillary Clinton	Q6294
+Sigmund Freud	Q9215
+J.K. Rowling	Q34660
+Freddie Mercury	Q15869
+Britney Spears	Q11975
+Scarlett Johansson	Q34436
+Robert De Niro	Q36949
+Israele	Q801
+Sud Africa	Q258
+New York	Q60
+Rio De Janeiro	Q8678
+Cascate del Niagara	Q34221
+Mar dei Caraibi	Q1247
+Muraglia Cinese	Q12501
+Piramidi di Giza	Q37200
+Machu Picchu	Q676203
+Canada	Q16

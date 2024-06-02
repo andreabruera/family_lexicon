@@ -54,6 +54,7 @@ else:
     ### plotting erps
     plot_erps(args)
     #plot_scalp_erps(args, searchlight_clusters)
+    import pdb; pdb.set_trace()
 
     if __name__ == '__main__':
 

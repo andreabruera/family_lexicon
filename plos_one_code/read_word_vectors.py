@@ -237,7 +237,6 @@ def load_vectors(args, experiment, n):
                                'ITGPT2', 
                                'gpt2-xl', 
                                'xlm-roberta-large',
-                               'xlm-roberta-xxl',
                                'MBERT',
                                'BERT_large',
                                # context-specific static
@@ -260,7 +259,7 @@ def load_vectors(args, experiment, n):
                                            ]:
                 dataset_marker = 'entity_sentences_all_vectors'
             else:
-                dataset_marker = 'entity_articles_all_words_all_vectors'
+                dataset_marker = 'entity_sentences_content_words_all_vectors'
                 #dataset_marker = 'entity_sentences_all_words_all_vectors'
         file_path = os.path.join(
                                'all_models', 
@@ -296,7 +295,6 @@ def load_vectors(args, experiment, n):
                                # others
                                (1280, ),
                                (1600, ),
-                               (4096, ),
                                ]
         if v.shape in [(1, )]:
             vectors = {k : v[0] for k, v in vectors.items()}

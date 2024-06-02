@@ -4,8 +4,7 @@ import random
 import scipy
 
 from scipy import spatial, stats
-#from skbold.preproc import ConfoundRegressor
-from confounds import ConfoundRegressor
+from skbold.preproc import ConfoundRegressor
 from tqdm import tqdm
 
 from general_utils import evaluate_pairwise, prepare_file, prepare_folder, evaluation_round

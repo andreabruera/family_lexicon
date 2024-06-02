@@ -210,7 +210,10 @@ def group_searchlight(args):
             else:
                 vmax = 0.2
 
-        cmap = 'viridis'
+        if args.input_target_model == 'coarse_category':
+            cmap = 'BuGn'
+        elif args.input_target_model == 'famous_familiar':
+            cmap = 'PuRd'
         evoked.plot_topomap(ch_type='eeg', 
                             time_unit='s', 
                             times=evoked.times,

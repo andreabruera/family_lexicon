@@ -12,8 +12,7 @@ from matplotlib import pyplot
 from mne import stats
 
 from scipy import spatial, stats
-#from skbold.preproc import ConfoundRegressor
-from confounds import ConfoundRegressor
+from skbold.preproc import ConfoundRegressor
 from sklearn.linear_model import Ridge, RidgeCV
 from sklearn.metrics import r2_score
 from sklearn.preprocessing import LabelEncoder
@@ -230,7 +229,6 @@ def read_args():
                                  'BERT_large',
                                  'MBERT', 
                                  'xlm-roberta-large',
-                                 'xlm-roberta-xxl',
                                  'ITGPT2',
                                  'gpt2-large',
                                  'LUKE_large',
@@ -552,12 +550,9 @@ def evaluation_round(args, experiment, current_eeg, comp_vectors):
         elif args.mapping_direction == 'correlation':
             #eeg_sims = [1. - scipy.stats.pearsonr(test_current_eeg[batch_stim], train_current_eeg[k_two])[0] for k_two in train_stimuli]
             for curr_test_brain, curr_test_model in zip(test_brain, test_model):
+
                 eeg_sims = [scipy.stats.pearsonr(curr_test_brain, curr_train_brain)[0] for curr_train_brain in train_brain]
-                if type(curr_test_model[0]) in [int, float, numpy.float64]:
-                    assert numpy.array(curr_test_model).shape == numpy.array(train_model).shape
-                    model_sims = [1 - abs(tst-tr) for tst, tr in zip(train_model, curr_test_model)]
-                else:
-                    model_sims = [scipy.stats.pearsonr(curr_test_model, curr_train_model)[0] for curr_train_model in train_model]
+                model_sims = [scipy.stats.pearsonr(curr_test_model, curr_train_model)[0] for curr_train_model in train_model]
                 corr = scipy.stats.pearsonr(eeg_sims, model_sims)[0]
                 scores.append(corr)
 

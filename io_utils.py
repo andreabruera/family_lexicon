@@ -156,13 +156,20 @@ class ExperimentInfo:
         cat_response_times = dict()
         general_response_times = dict()
         accuracies = dict()
+
+        if self.experiment_id == 'one':
+            cat_one = full_log['coarse_category']
+            cat_two = full_log['fine_category']
+        if self.experiment_id == 'two':
+            cat_one = full_log['semantic_domain']
+            cat_two = full_log['familiarity']
         for sub, stim, t, acc, sem, fam in zip(
                                 full_log['subject'], 
                                 full_log['trial_type'], 
                                 full_log['response_time'],
                                 full_log['accuracy'],
-                                full_log['semantic_domain'],
-                                full_log['familiarity'],
+                                cat_one,
+                                cat_two,
                                 ):
             if t != 'na':
                 if stim not in response_times[int(sub)].keys():
