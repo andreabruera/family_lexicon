@@ -62,7 +62,7 @@ class SearchlightClusters:
     def indices_to_codes(self):
 
         index_to_code = collections.defaultdict(str)
-        with open('searchlight/searchlight_clusters_{}mm.txt'.format(float(self.max_distance*1000)), 'r') as searchlight_file:
+        with open('searchlight_clusters_{}mm.txt'.format(float(self.max_distance*1000)), 'r') as searchlight_file:
             for l in searchlight_file:
                 if 'CE' not in l:
                     l = l.strip().split('\t')
@@ -74,7 +74,7 @@ class SearchlightClusters:
 
         searchlight_clusters = collections.defaultdict(list)
 
-        with open('searchlight/searchlight_clusters_{}mm.txt'.format(float(self.max_distance*1000)), 'r') as searchlight_file:
+        with open('searchlight_clusters_{}mm.txt'.format(float(self.max_distance*1000)), 'r') as searchlight_file:
             print(searchlight_file)
             for l in searchlight_file:
                 if 'CE' not in l:
@@ -114,12 +114,7 @@ def searchlight(all_args):
 def searchlight_two(all_args):
 
     args = all_args[0]
-    #all_eeg = all_args[1]
-    #comp_vectors = all_args[2]
-    #eeg = all_args[3]
     experiment = all_args[1]
-    #places = all_args[5][0]
-    #time = all_args[5][1]
     n = all_args[2]
     searchlight_clusters = all_args[3]
     places_and_times = all_args[4]
@@ -142,7 +137,6 @@ def searchlight_two(all_args):
 
         results_dict[(places[0], start_time)] = corr
     write_searchlight(all_eeg, file_path, results_dict, searchlight_clusters)
-    #return places[0], start_time, corr
 
 def write_searchlight(all_eeg, file_path, results_dict, searchlight_clusters):
 

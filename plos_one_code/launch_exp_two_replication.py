@@ -1,36 +1,31 @@
 import os
 
-message = lambda item : 'python3 main.py --analysis {} --mapping_model {} --mapping_direction decoding --input_target_model {} --experiment_id two --temporal_resolution 5 --semantic_category_one {} --semantic_category_two {} --data_kind erp --data_folder /import/cogsci/andrea/dataset/neuroscience/family_lexicon_eeg/ --searchlight_spatial_radius large_distance --searchlight_temporal_radius large --language {} --evaluation_method pairwise --average 24{}'.format(item[0], item[1], item[2], item[3], item[4], item[5], item[6])
+### EDIT HERE WITH YOUR PATH_TO_FOLDER
+data_folder = '/data/tu_bruera/neuroscience/family_lexicon_eeg'
+assert os.path.exists(data_folder)
+
+message = lambda item : 'python3 main.py --analysis {} --input_target_model {} --semantic_category_one {} --semantic_category_two {} --data_folder {}'.format(item[0], item[1], item[2], item[3], item[4])
 
 models = [
-          'coarse_category',
-          #'word_length',
-          #'orthography',
-          'famous_familiar',
+          'xlm-roberta-large',
+          'w2v_sentence',
+          'word_length',
+          'orthography',
           ]
 
-languages = [
-             'it', 
-             ]
-mappings = [
-            'rsa'
-            ]
-corrections = [
-               ' --corrected', 
-               ]
 categories = [
-              #'place', 
-              #'person', 
+              'place', 
+              'person', 
               'all',
               ]
 categories_two = [
-                  #'familiar', 
-                  #'famous', 
+                  'familiar', 
+                  'famous', 
                   'all',
                   ]
 plots = [
          ' ', 
-         #' --plot'
+         ' --plot'
          ]
 
 analyses = ['time_resolved', 'searchlight']
@@ -39,21 +34,18 @@ already_done = list()
 
 for analysis in analyses:
     for model in models:
-        for lang in languages:
-            for mapping in mappings:
-                for correc in corrections:
-                    for cat in categories:
-                        for category_two in categories_two:
-                            comb = sorted([cat, category_two])
-                            if comb in already_done:
-                                #continue
-                                pass
-                            else:
-                                already_done.append(comb)
+        for cat in categories:
+            for category_two in categories_two:
+                comb = sorted([cat, category_two])
+                if comb in already_done:
+                    #continue
+                    pass
+                else:
+                    already_done.append(comb)
 
-                            current_message = message([analysis, mapping, model, cat, category_two, lang, correc])
-                            #for plot in plots:
-                            #    os.system('{}{}'.format(current_message, plot))
-                            #    #os.system('{}{} --debugging'.format(current_message, plot))
-                            if analysis == 'searchlight':
-                                os.system('{} --comparison --plot'.format(current_message))
+                current_message = message([analysis, model, cat, category_two, data_folder])
+                for plot in plots:
+                    os.system('{}{}'.format(current_message, plot))
+                    #os.system('{}{} --debugging'.format(current_message, plot))
+                if analysis == 'searchlight':
+                    os.system('{} --comparison --plot'.format(current_message))

@@ -95,13 +95,13 @@ def check_statistical_significance(args, setup_data, times):
     significance = 0.05
     significant_indices = [(i, v) for i, v in enumerate(corrected_p_values) if round(v, 2)<=significance]
     semi_significant_indices = [(i, v) for i, v in enumerate(corrected_p_values) if (round(v, 2)<=0.08 and v>0.05)]
+    non_significant_indices = [(i, v) for i, v in enumerate(corrected_p_values)]
     print('Significant indices at {}: {}'.format(significance, significant_indices))
 
-    return significant_indices, semi_significant_indices
+    return significant_indices, semi_significant_indices, non_significant_indices
 
 
 def read_files(args, subjects):
-
 
     data = list()
     out_path = prepare_folder(args)
@@ -156,11 +156,6 @@ def plot_classification(args):
         model_key = 0
     elif args.input_target_model == 'w2v_sentence_individuals':
         model_key = 1
-    elif args.input_target_model == 'perceptual_individuals':
-        model_key = 2
-    elif args.input_target_model == 'affective_individuals':
-        model_key = 0
-        alt = True
     else:
         model_key = random.randint(0, 2)
         alt = random.randint(0, 1)
@@ -179,7 +174,7 @@ def plot_classification(args):
     # Setting font properties
 
     # Using Helvetica as a font
-    font_folder = '/import/cogsci/andrea/dataset/fonts/'
+    font_folder = '../../../fonts/'
     font_dirs = [font_folder, ]
     font_files = font_manager.findSystemFonts(fontpaths=font_dirs)
     for p in font_files:
@@ -237,10 +232,7 @@ def plot_classification(args):
 
     ##### Axes
     ax[0].set_xlabel('Time', labelpad=10.0, fontweight='bold')
-    if args.mapping_direction == 'correlation':
-        ylabel = 'Pearson correlation'
-    else:
-        ylabel = 'Classification accuracy'
+    ylabel = 'Spearman correlation'
     ax[0].set_ylabel(ylabel, labelpad=10.0, fontweight='bold')
 
     #### Random baseline line
@@ -380,7 +372,7 @@ def plot_classification(args):
     ### Plot is randomly colored
     #color = (numpy.random.random(), numpy.random.random(), numpy.random.random())
 
-    sig_values, semi_sig_values = check_statistical_significance(args, data, times)
+    sig_values, semi_sig_values, all_values = check_statistical_significance(args, data, times)
     sig_indices = [k[0] for k in sig_values]
     semi_sig_indices = [k[0] for k in semi_sig_values]
 
@@ -583,11 +575,11 @@ def plot_classification(args):
     if not language_agnostic:
         file_name = file_name.replace(args.input_target_model, '{}_{}'.format(args.input_target_model, args.language))
     with open(file_name, 'w') as o:
-        o.write('Data\tsignificant time points & FDR-corrected p-value\n')
+        o.write('Data\ttime point\tFDR-corrected p-value\n')
         #for l, values in sig_container.items():
         #    o.write('{}\t'.format(l))
         o.write('{}\n\n'.format(label))
-        for v in sig_values:
+        for v in all_values:
             o.write('{}\t{}\n'.format(times[v[0]], round(v[1], 5)))
 
     ### Plotting

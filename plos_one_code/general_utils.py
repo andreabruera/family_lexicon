@@ -54,12 +54,8 @@ def read_args():
                          ]
     semantic_categories_two = [
                          'all',
-                         ### experiment one
                          'famous', 
                          'familiar',
-                         ### experiment two
-                         'individual',
-                         'category',
                          ]
 
     parser = argparse.ArgumentParser()
@@ -74,18 +70,18 @@ def read_args():
     ### applying to anything
     parser.add_argument(
                         '--experiment_id',
-                        choices=['one', 'two', 'pilot'], 
-                        required=True,
+                        choices=['two'], 
+                        default='two',
                         help='Which experiment?'
                         )
     parser.add_argument(
                         '--language', 
-                        choices=['it', 'en'], 
-                        required=True
+                        choices=['it'], 
+                        default='it',
                         )
     parser.add_argument(
                         '--average', 
-                        type=int, choices=list(range(25))+[-12, -36], 
+                        type=int, choices=[24], 
                         default=24, 
                         help='How many ERPs to average?'
                         )
@@ -94,62 +90,34 @@ def read_args():
                         choices=[
                                  'time_resolved',
                                  'searchlight',
-                                 'whole_trial',
-                                 'temporal_generalization',
                                  ]
                         )
     parser.add_argument('--mapping_model', 
                         type=str,
                         choices=[
-                                 'ridge',
-                                 'support_vector',
                                  'rsa',
-                                 ]
+                                 ],
+                        default='rsa',
                         )
     parser.add_argument('--mapping_direction', 
                         type=str,
                         choices=[
                                  'encoding',
-                                 'decoding',
-                                 'correlation',
-                                 ]
+                                 ],
+                        default='encoding',
                         )
 
-    parser.add_argument('--temporal_resolution', choices=[4, 5, 10, 25, 33, 50, 75, 100],
-                        type=int, required=True)
+    parser.add_argument(
+                        '--temporal_resolution', 
+                        choices=[4, 5, 10, 25, 33, 50, 75, 100],
+                        type=int, 
+                        default=5,
+                        )
 
     parser.add_argument('--data_kind', choices=[
                             'erp', 
-                            'alpha',
-                            'alpha_phase', 
-                            'beta', 
-                            'lower_gamma', 
-                            'higher_gamma', 
-                            'delta', 
-                            'theta',
-                            'theta_phase',
-                            'D26',
-                            'B16',
-                            'C22',
-                            'C23',
-                            'C11',
-                            ### ATLs
-                            'bilateral_anterior_temporal_lobe', 
-                            'left_atl', 
-                            'right_atl', 
-                            ### Lobes
-                            'left_frontal_lobe', 'right_frontal_lobe', 'bilateral_frontal_lobe',
-                            'left_temporal_lobe', 'right_temporal_lobe', 'bilateral_temporal_lobe',
-                            'left_parietal_lobe', 'right_parietal_lobe', 'bilateral_parietal_lobe',
-                            'left_occipital_lobe', 'right_occipital_lobe', 'bilateral_occipital_lobe',
-                            'left_limbic_system', 'right_limbic_system', 'bilateral_limbic_system',
-                            ### Networks
-                            'language_network', 
-                            'general_semantics_network',
-                            'default_mode_network', 
-                            'social_network', 
                             ], 
-                        required=True, 
+                        default='erp',
                         help='Time-frequency, ERP or source analyses?'
                         ) 
     ### Arguments which do not affect output folder structure
@@ -178,7 +146,7 @@ def read_args():
     parser.add_argument(
                         '--corrected',
                         action='store_true',
-                        default=False, 
+                        default=True, 
                         help='Controlling test samples for length?')
     parser.add_argument(
                         '--comparison',
@@ -190,55 +158,15 @@ def read_args():
                         required=True,
                         choices=[
                                  'ceiling',
-                                 'response_times',
-                                 ### Category
-                                 'coarse_category',
-                                 'famous_familiar',
-                                 'fine_category',
-                                 'individuals',
-                                 'sex',
-                                 'place_type',
-                                 'occupation',
-                                 'location',
-                                 # orthography
-                                 'orthography',
-                                 'word_length',
-                                 'syllables',
-                                 # frequency
-                                 'frequency',
-                                 'log_frequency',
-                                 # norms
-                                 'imageability',
-                                 'familiarity',
-                                 'concreteness_sentence',
-                                 'perceptual_sentence',
-                                 'affective_sentence',
-                                 'imageability_sentence',
-                                 # amount of knowledge
-                                 'sentence_lengths',
-                                 # static language models
-                                 # Static
-                                 'w2v',
                                  'w2v_sentence',
-                                 # Static + knowledge-aware
-                                 'wikipedia2vec',
-                                 'wikipedia2vec_sentence',
-                                 # Knowledge-only
-                                 'transe', 
-                                 # contextualized
-                                 'BERT_large',
-                                 'MBERT', 
                                  'xlm-roberta-large',
-                                 'ITGPT2',
-                                 'gpt2-large',
-                                 'LUKE_large',
                                  ],
                         help='Which computational model to use for decoding?'
                         )
     parser.add_argument(
                         '--evaluation_method', 
-                        default='pairwise',
-                        choices=['pairwise', 'correlation', 'r_squared'],
+                        default='correlation',
+                        choices=['correlation'],
                         help='Which evaluation method to use for decoding?'
                         )
     parser.add_argument(
@@ -248,25 +176,16 @@ def read_args():
                                  ### Collins et al. 2018, NeuroImage, Distinct neural processes for the perception of familiar versus unfamiliar faces along the visual hierarchy revealed by EEG
                                  ### Su et al., Optimising Searchlight Representational Similarity Analysis (RSA) for EMEG
                                  'large_distance',
-                                 ### 20mm radius, used in 
-                                 ### Su et al. 2014, Mapping tonotopic organization in human temporal cortex: representational similarity analysis in EMEG source space. Frontiers in neuroscience
-                                 'small_distance',
-                                 ### 5 closest electrodes
-                                 ### Graumann et al. 2022, The spatiotemporal neural dynamics of object location representations in the human brain, nature human behaviour
-                                 'fixed'
                                  ], 
-                        required=True
+                        default='large_distance',
                         )
     parser.add_argument(
                         '--searchlight_temporal_radius', 
                         choices=[
                                  ### 100ms radius
                                  'large',
-                                 'medium',
-                                 ### 50ms radius
-                                 'small',
                                  ], 
-                        required=True
+                        default='large',
                         )
     parser.add_argument(
                         '--cores_usage',
@@ -281,6 +200,7 @@ def read_args():
                         )
     parser.add_argument(
                       '--across_subjects',
+                      default=False,
                       action='store_true',
                       )
     args = parser.parse_args()
@@ -292,48 +212,12 @@ def read_args():
 def check_args(args):
     ### checking inconsistencies in the args
     marker = False
-    ### experiment one
-    if args.experiment_id == 'one':
-        if args.semantic_category_two in ['famous', 'familiar']:
-            marker = True
-            message = 'experiment two does not distinguish between famous and familiar!'
     ### experiment two 
     if args.experiment_id == 'two':
-        if args.semantic_category_two in ['individual', 'category']:
-            marker = True
-            message = 'experiment two does not distinguish between individuals and categories!'
         if args.semantic_category_two in ['familiar', 'all']:
             if args.input_target_model in ['log_frequency', 'frequency']:
                 marker = True
                 message = 'frequency is not available for familiar entities!'
-    if args.input_target_model == 'coarse_category' and args.semantic_category_one in ['person', 'place']:
-        marker = True
-        message = 'wrong model and semantic category!'
-    if args.input_target_model == 'famous_familiar' and args.semantic_category_two in ['famous', 'familiar']:
-        marker = True
-        message = 'wrong model and semantic category!'
-    if args.mapping_model in ['ridge', 'support_vector'] and args.mapping_direction == 'correlation':
-        marker = True
-        message = 'no correlation for ridge/support vector!'
-    if args.mapping_model in ['ridge', 'support_vector'] and args.evaluation_method == 'correlation' and args.mapping_direction == 'decoding':
-        if args.input_target_model in ['coarse_category', 'famous_familiar', 'word_length', 'orthography', 'sentence_lengths', 'log_frequency', 'imageability', 'familiarity', 'frequency', 'fine_category']:
-            marker = True
-            message = 'impossible to evaluate decoding with correlation for {}'.format(args.input_target_model)
-    if args.input_target_model == 'sex':
-        if args.semantic_category_one in ['place', 'all']:
-            marker = True
-            message = 'No sex for places!'
-        if args.semantic_category_two in ['category']:
-            marker = True
-            message = 'No sex for categories!'
-    if args.input_target_model == 'location':
-        if args.semantic_category_one in ['person', 'all']:
-            marker = True
-            message = 'No location for places!'
-        if args.semantic_category_two in ['category', 'all']:
-            marker = True
-            message = 'No location for categories!'
-        
     if marker:
         raise RuntimeError(message)
 
@@ -475,7 +359,8 @@ def evaluate_pairwise(args, train_brain, test_brain, train_model, test_model, tr
             if type(test_target[0]) in [int, float, numpy.float64]:
                 wrong += 1 - abs(test_input[idx_one]-test_target[idx_two])
             else:
-                wrong += scipy.stats.pearsonr(test_input[idx_one], test_target[idx_two])[0]
+                #wrong += scipy.stats.pearsonr(test_input[idx_one], test_target[idx_two])[0]
+                wrong += scipy.stats.spearmanr(test_input[idx_one], test_target[idx_two])[0]
 
         correct = 0.
         for idx_one, idx_two in [(0, 0), (1, 1)]:
@@ -483,7 +368,7 @@ def evaluate_pairwise(args, train_brain, test_brain, train_model, test_model, tr
             if type(test_target[0]) in [int, float, numpy.float64]:
                 correct += 1 - abs(test_input[idx_one]-test_target[idx_two])
             else:
-                correct += scipy.stats.pearsonr(test_input[idx_one], test_target[idx_two])[0]
+                correct += scipy.stats.spearmanr(test_input[idx_one], test_target[idx_two])[0]
 
         if correct > wrong:
             #accuracies.append(1)
@@ -499,7 +384,9 @@ def evaluate_pairwise(args, train_brain, test_brain, train_model, test_model, tr
             if type(test_target[0]) in [int, float, numpy.float64]:
                 correct += 1 - abs(test_input[idx_one]-test_target[idx_two])
             else:
-                correct += scipy.stats.pearsonr(test_input[idx_one], test_target[idx_two])[0]
+                #correct += scipy.stats.pearsonr(test_input[idx_one], test_target[idx_two])[0]
+                correct += scipy.stats.spearmanr(test_input[idx_one], test_target[idx_two])[0]
+                #print('spearman')
         accuracy = correct/2
 
     elif args.evaluation_method == 'r_squared':
@@ -644,7 +531,7 @@ def colors_mapper():
 
 def read_colors(alt=False):
 
-    file_path = 'data/12.color.blindness.palette.txt'
+    file_path = '12.color.blindness.palette.txt'
     assert os.path.exists(file_path)
     with open(file_path) as i:
         lines = [re.sub('\s+', r'\t', l.strip()).split('\t') for l in i.readlines()][10:]

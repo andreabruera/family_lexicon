@@ -22,25 +22,16 @@ from searchlight import SearchlightClusters
 def group_searchlight(args):
 
     plot_path = prepare_folder(args).replace('results', 'plots')
+    upper_limit = 0.8
+    lower_limit = 0.0
 
     ### comparing models
     if args.comparison:
-        if args.input_target_model not in ['famous_familiar', 'coarse_category']:
-            models = ['xlm-roberta-large_individuals', args.input_target_model]
-        elif args.input_target_model == 'famous_familiar':
-            models = ['person', 'place']
-        elif args.input_target_model == 'coarse_category':
-            models = ['familiar', 'famous']
+        models = ['xlm-roberta-large_individuals', args.input_target_model]
+        assert models[0] != models[1]
         collector = dict()
         for m in models:
-            if args.input_target_model not in ['famous_familiar', 'coarse_category']:
-                args.input_target_model = m
-            elif args.input_target_model == 'famous_familiar':
-                args.semantic_category_one = m
-            elif args.input_target_model == 'coarse_category':
-                args.semantic_category_two = m
-            #significance = .005
-            #significance = 0.1
+            args.input_target_model = m
             clusters = SearchlightClusters(args)
             electrode_index_to_code = clusters.index_to_code
             mne_adj_matrix = clusters.mne_adjacency_matrix
@@ -63,12 +54,7 @@ def group_searchlight(args):
                 ### reducing relevant time points
                 ### following leonardelli & fairhall, range is 100-750ms
 
-                upper_limit = 0.8 if args.experiment_id == 'two' else 1.2
-                #upper_limit = 1.2 if args.experiment_id == 'two' else 1.2
-                lower_limit = 0.0 if args.experiment_id == 'two' else 0.
-                #lower_limit = 0.3 if args.experiment_id == 'two' else .3
                 relevant_indices = [t_i for t_i, t in enumerate(times) if (t>lower_limit and t<upper_limit)]
-                #relevant_indices = [t_i for t_i, t in enumerate(times) if t>0.]
                 times = times[relevant_indices]
                 electrodes = electrodes[relevant_indices, :]
 
@@ -76,15 +62,10 @@ def group_searchlight(args):
 
             random_baseline = return_baseline(args) 
             all_subjects = numpy.array(all_subjects) - random_baseline
+            ### dissimilarity - i.e. 1-corr
             collector[m] = numpy.ones(shape=all_subjects.shape) - all_subjects
-        if args.input_target_model not in ['famous_familiar', 'coarse_category']:
-            all_subjects = collector[m] - collector['xlm-roberta-large_individuals']
-        elif args.input_target_model == 'famous_familiar':
-            all_subjects = collector[m] - collector['person']
-            args.semantic_category_one = 'all'
-        elif args.input_target_model == 'coarse_category':
-            all_subjects = collector[m] - collector['familiar']
-            args.semantic_category_two = 'all'
+        ### dissimilarity distance
+        all_subjects = collector[m] - collector['xlm-roberta-large_individuals']
 
     ### simply plotting one model
     else:
@@ -114,8 +95,6 @@ def group_searchlight(args):
             ### reducing relevant time points
             ### following leonardelli & fairhall, range is 100-750ms
 
-            upper_limit = 0.8 if args.experiment_id == 'two' else 1.2
-            lower_limit = 0.0 if args.experiment_id == 'two' else 0.
             relevant_indices = [t_i for t_i, t in enumerate(times) if (t>lower_limit and t<upper_limit)]
             times = times[relevant_indices]
             electrodes = electrodes[relevant_indices, :]
@@ -135,12 +114,18 @@ def group_searchlight(args):
                                                        )
     logging.info('Minimum p-value for {}: {}'.format(args.input_target_model, min(p_values)))
 
-    significance = .05
+    main_sig = .05
     original_shape = t_stats.shape
     avged_subjects = numpy.average(all_subjects, axis=0)
     assert avged_subjects.shape == original_shape
 
-    for significance in [0.05, #0.1
+    for significance in [
+                        main_sig, 
+                        # strongly significant
+                        #main_sig*0.1,
+                        #main_sig*0.01,
+                        # approaching significance
+                        #main_sig*2,
                         ]:
 
         reshaped_p = p_values.copy()
@@ -159,16 +144,12 @@ def group_searchlight(args):
 
         #relevant_times
         tmin = times[0]
-        if args.data_kind != 'time_frequency':
-            if args.searchlight_temporal_radius == 'large':
-                sfreq = 10
-            elif args.searchlight_temporal_radius == 'medium':
-                sfreq = 20 
-            elif args.searchlight_temporal_radius == 'small':
-                sfreq = 40
-
-        elif args.data_kind == 'time_frequency':
-            sfreq = 256 / 16
+        if args.searchlight_temporal_radius == 'large':
+            sfreq = 10
+        elif args.searchlight_temporal_radius == 'medium':
+            sfreq = 20 
+        elif args.searchlight_temporal_radius == 'small':
+            sfreq = 40
         info = mne.create_info(
                                ch_names=[v for k, v in clusters.index_to_code.items()],
                                sfreq=sfreq,
@@ -210,10 +191,14 @@ def group_searchlight(args):
             else:
                 vmax = 0.2
 
+        ### TODO: changing colors of the plots
         if args.input_target_model == 'coarse_category':
             cmap = 'BuGn'
         elif args.input_target_model == 'famous_familiar':
             cmap = 'PuRd'
+        else:
+            cmap = 'PuRd'
+
         evoked.plot_topomap(ch_type='eeg', 
                             time_unit='s', 
                             times=evoked.times,

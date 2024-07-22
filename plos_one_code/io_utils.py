@@ -2,11 +2,9 @@ import os
 import mne
 import re
 import collections
-import nilearn
 import numpy
 import itertools
 import random
-
 
 class ExperimentInfo:
 
@@ -75,12 +73,8 @@ class ExperimentInfo:
             ### Limiting the trigger-to-info dictionary to the current subject
             if full_log['subject'][t_i] == self.current_subject:
                 name = full_log['trial_type'][t_i]
-                if self.experiment_id == 'two':
-                    key_one = 'semantic_domain'
-                    key_two = 'familiarity'
-                else:
-                    key_one = 'coarse_category'
-                    key_two = 'fine_category'
+                key_one = 'semantic_domain'
+                key_two = 'familiarity'
                 cat_one = full_log[key_one][t_i]
                 cat_two = full_log[key_two][t_i]
                 infos = [name, cat_one, cat_two]
@@ -136,13 +130,7 @@ class ExperimentInfo:
         if self.semantic_category_two == 'all':
             relevant_trigs_two = self.trigger_to_info.keys()
         else:
-            if self.experiment_id == 'two':
-                relevant_trigs_two = [k for k, v in self.trigger_to_info.items() if v[2]==self.semantic_category_two]
-            elif self.experiment_id == 'one':
-                if self.semantic_category_two == 'individual':
-                    relevant_trigs_two = [k for k, v in self.trigger_to_info.items() if k<=100]
-                elif self.semantic_category_two == 'category':
-                    relevant_trigs_two = [k for k, v in self.trigger_to_info.items() if k>100]
+            relevant_trigs_two = [k for k, v in self.trigger_to_info.items() if v[2]==self.semantic_category_two]
         relevant_trigs = [k for k in self.trigger_to_info.keys() if k in relevant_trigs_one and k in relevant_trigs_two]
         print(relevant_trigs)
         all_combs = list(itertools.combinations(list(relevant_trigs), r=2))

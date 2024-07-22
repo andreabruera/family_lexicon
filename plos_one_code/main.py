@@ -10,8 +10,8 @@ import sklearn
 
 from tqdm import tqdm
 
-from general_utils import how_many_cores, plot_erps, plot_scalp_erps, read_args
-from io_utils import ExperimentInfo, LoadEEG, tfr_frequencies
+from general_utils import how_many_cores, read_args
+from io_utils import ExperimentInfo, LoadEEG
 
 from plot_classification import plot_classification
 
@@ -33,15 +33,7 @@ searchlight_clusters = SearchlightClusters(args)
 ### Plotting
 
 if args.plot:
-    if args.analysis == 'whole_trial':
-        if args.experiment_id == 'one':
-            plot_decoding_results_breakdown(args)
-            plot_feature_selection_comparison(args)
-            plot_decoding_scores_comparison(args)
-        else:
-            plot_decoding_results_breakdown(args)
-        plot_feature_selection_comparison(args, experiment)
-    elif args.analysis == 'time_resolved':
+    if args.analysis == 'time_resolved':
         plot_classification(args)
     elif args.analysis == 'searchlight':
         group_searchlight(args)
@@ -51,15 +43,7 @@ else:
 
     experiment = ExperimentInfo(args)
 
-    ### plotting erps
-    plot_erps(args)
-    #plot_scalp_erps(args, searchlight_clusters)
-    import pdb; pdb.set_trace()
-
     if __name__ == '__main__':
-
-        if args.analysis == 'whole_trial':
-            raise RuntimeError('to be implemented!')
 
         processes = how_many_cores(args)
         #processes = 2
