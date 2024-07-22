@@ -37,6 +37,7 @@ def check_statistical_significance(args, setup_data, times):
     upper_indices = [t_i for t_i, t in enumerate(times) if t>upper_limit]
 
     relevant_indices = [t_i for t_i, t in enumerate(times) if (t>=lower_limit and t<=upper_limit)]
+    print([t for t_i, t in enumerate(times) if (t>=lower_limit and t<=upper_limit)])
     setup_data = setup_data[:, relevant_indices]
     if args.data_kind not in [
                               'erp', 
@@ -57,9 +58,13 @@ def check_statistical_significance(args, setup_data, times):
         ### Wilcoxon + FDR correction
         significance_data = setup_data.T - random_baseline
         original_p_values = list()
+        t_values = list()
         for t in significance_data:
-            p = stats.wilcoxon(t, alternative='greater')[1]
+            t_p = stats.wilcoxon(t, alternative='greater')
+            p = t_p[1]
+            t = t_p[0]
             original_p_values.append(p)
+            t_values.append(t)
 
         assert len(original_p_values) == setup_data.shape[-1]
         #corrected_p_values = mne.stats.fdr_correction(original_p_values[2:6])[1]
@@ -81,21 +86,23 @@ def check_statistical_significance(args, setup_data, times):
                 adj[i, max(0, i-window)] = 1
                 adj[i, min(setup_data.shape[-1]-1, i+window)] = 1
         adj = scipy.sparse.coo_matrix(adj)
-        corrected_p_values = mne.stats.permutation_cluster_1samp_test(
+        tfce = mne.stats.permutation_cluster_1samp_test(
                                                      setup_data-random_baseline, 
                                                      tail=1, \
                                                      #n_permutations=4000,
                                                      #adjacency=None, \
                                                      adjacency=adj, \
-                                                     threshold=dict(start=0, step=0.2))[2]
+                                                     threshold=dict(start=0, step=0.2))
+        corrected_p_values = tfce[2]
+        t_values = tfce[0]
 
     corrected_p_values = [1. for t in lower_indices] + corrected_p_values.tolist() + [1. for t in upper_indices]
     assert len(corrected_p_values) == len(times)
     print(min(corrected_p_values))
     significance = 0.05
-    significant_indices = [(i, v) for i, v in enumerate(corrected_p_values) if round(v, 2)<=significance]
-    semi_significant_indices = [(i, v) for i, v in enumerate(corrected_p_values) if (round(v, 2)<=0.08 and v>0.05)]
-    non_significant_indices = [(i, v) for i, v in enumerate(corrected_p_values)]
+    significant_indices = [(i, v) for i, v in zip(relevant_indices, corrected_p_values) if round(v, 2)<=significance]
+    semi_significant_indices = [(i, v) for i, v in zip(relevant_indices, corrected_p_values) if (round(v, 2)<=0.08 and v>0.05)]
+    non_significant_indices = [(i, v, t) for i, v, t in zip(relevant_indices, corrected_p_values, t_values)]
     print('Significant indices at {}: {}'.format(significance, significant_indices))
 
     return significant_indices, semi_significant_indices, non_significant_indices
@@ -575,12 +582,12 @@ def plot_classification(args):
     if not language_agnostic:
         file_name = file_name.replace(args.input_target_model, '{}_{}'.format(args.input_target_model, args.language))
     with open(file_name, 'w') as o:
-        o.write('Data\ttime point\tFDR-corrected p-value\n')
+        o.write('Data\ttime point\tt-value\tFDR-corrected p-value\n')
         #for l, values in sig_container.items():
         #    o.write('{}\t'.format(l))
         o.write('{}\n\n'.format(label))
         for v in all_values:
-            o.write('{}\t{}\n'.format(times[v[0]], round(v[1], 5)))
+            o.write('{}\t{}\t{}\n'.format(times[v[0]],v[2], round(v[1], 5)))
 
     ### Plotting
     #if 'searchlight' in args.analysis:
