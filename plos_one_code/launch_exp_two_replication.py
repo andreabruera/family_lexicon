@@ -9,8 +9,8 @@ message = lambda item : 'python3 main.py --analysis {} --input_target_model {} -
 models = [
           'xlm-roberta-large',
           'w2v_sentence',
-          'word_length',
-          'orthography',
+          #'word_length',
+          #'orthography',
           ]
 
 categories = [
@@ -28,7 +28,10 @@ plots = [
          ' --plot'
          ]
 
-analyses = ['time_resolved', 'searchlight']
+analyses = [
+            #'time_resolved', 
+            'searchlight',
+            ]
 
 already_done = list()
 
@@ -36,10 +39,12 @@ for analysis in analyses:
     for model in models:
         for cat in categories:
             for category_two in categories_two:
-                comb = sorted([cat, category_two])
+                comb = sorted([model, analysis, cat, category_two])
+                if 'all' in comb and len(set(comb))>3:
+                    continue
                 if comb in already_done:
-                    #continue
-                    pass
+                    continue
+                    #pass
                 else:
                     already_done.append(comb)
 

@@ -93,19 +93,21 @@ def check_statistical_significance(args, setup_data, times):
                                                      #adjacency=None, \
                                                      adjacency=adj, \
                                                      threshold=dict(start=0, step=0.2))
-        corrected_p_values = tfce[2]
-        t_values = tfce[0]
+        corrected_p_values = tfce[2].tolist()
+        t_values = tfce[0].tolist()
 
-    corrected_p_values = [1. for t in lower_indices] + corrected_p_values.tolist() + [1. for t in upper_indices]
-    assert len(corrected_p_values) == len(times)
-    print(min(corrected_p_values))
+    all_corrected_p_values = ['na' for t in lower_indices] + corrected_p_values + ['na' for t in upper_indices]
+    all_t_values = ['na' for t in lower_indices] + t_values + ['na' for t in upper_indices]
+    assert len(all_corrected_p_values) == len(times)
+    assert len(all_t_values) == len(times)
+    #print(min(all_corrected_p_values))
     significance = 0.05
-    significant_indices = [(i, v) for i, v in zip(relevant_indices, corrected_p_values) if round(v, 2)<=significance]
-    semi_significant_indices = [(i, v) for i, v in zip(relevant_indices, corrected_p_values) if (round(v, 2)<=0.08 and v>0.05)]
-    non_significant_indices = [(i, v, t) for i, v, t in zip(relevant_indices, corrected_p_values, t_values)]
+    significant_indices = [(i, v) for i, v in enumerate(all_corrected_p_values) if type(v)==float and round(v, 2)<=significance]
+    semi_significant_indices = [(i, v) for i, v in enumerate(all_corrected_p_values) if type(v)==float and (round(v, 2)<0.1 and v>0.05)]
+    all_ps_ts = [(v, t) for v, t in zip(all_corrected_p_values, all_t_values)]
     print('Significant indices at {}: {}'.format(significance, significant_indices))
 
-    return significant_indices, semi_significant_indices, non_significant_indices
+    return significant_indices, semi_significant_indices, all_ps_ts
 
 
 def read_files(args, subjects):
@@ -501,6 +503,7 @@ def plot_classification(args):
                     color='white', \
                     edgecolors='black', \
                     s=20., linewidth=.5)
+    '''
     ax[0].scatter([times[t] for t in semi_sig_indices], \
     #ax[0].scatter(significant_indices, \
                [numpy.average(data, axis=0)[t] \
@@ -509,6 +512,7 @@ def plot_classification(args):
                     edgecolors='black', \
                     s=20., linewidth=.5,
                     marker='*')
+    '''
 
     ### Plotting the legend in 
     ### a separate figure below
@@ -586,8 +590,11 @@ def plot_classification(args):
         #for l, values in sig_container.items():
         #    o.write('{}\t'.format(l))
         o.write('{}\n\n'.format(label))
-        for v in all_values:
-            o.write('{}\t{}\t{}\n'.format(times[v[0]],v[2], round(v[1], 5)))
+        assert len(times) == len(all_values)
+        for time, v in zip(times, all_values):
+            t = v[1]
+            p = v[0] if v[0]=='na' else round(v[0], 5)
+            o.write('{}\t{}\t{}\n'.format(time, t, p))
 
     ### Plotting
     #if 'searchlight' in args.analysis:

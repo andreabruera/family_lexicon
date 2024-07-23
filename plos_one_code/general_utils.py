@@ -160,6 +160,8 @@ def read_args():
                                  'ceiling',
                                  'w2v_sentence',
                                  'xlm-roberta-large',
+                                 'orthography', 
+                                 'word_length',
                                  ],
                         help='Which computational model to use for decoding?'
                         )
@@ -426,6 +428,7 @@ def evaluation_round(args, experiment, current_eeg, comp_vectors):
             ### NB: the higher the value, the more similar the items!
             else:
                 test_model = [[scipy.stats.pearsonr(tst, tr)[0] for tr in train_model] for tst in test_model]
+                #test_model = [[scipy.stats.spearmanr(tst, tr)[0] for tr in train_model] for tst in test_model]
             #test_model = [model_sims[tuple(sorted([tr, tst]))] for tr in train_trigs for tst in test_trigs]
 
         ### rsa decoding/encoding

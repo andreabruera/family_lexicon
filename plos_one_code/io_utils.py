@@ -132,7 +132,7 @@ class ExperimentInfo:
         else:
             relevant_trigs_two = [k for k, v in self.trigger_to_info.items() if v[2]==self.semantic_category_two]
         relevant_trigs = [k for k in self.trigger_to_info.keys() if k in relevant_trigs_one and k in relevant_trigs_two]
-        print(relevant_trigs)
+        print(sorted(relevant_trigs))
         all_combs = list(itertools.combinations(list(relevant_trigs), r=2))
         ### removing useless leave-two-out #all_combs = [c for c in all_combs if c[0] in relevant_trigs and c[1] in relevant_trigs
         return all_combs
@@ -160,7 +160,10 @@ class LoadEEG:
                                verbose=False
                                )
         ### Restricting data to EEG
-        epochs = epochs.pick_types(eeg=True)
+        #epochs = epochs.pick_types(eeg=True)
+        epochs = epochs.pick(['eeg'])
+        non_eeg_channels = len([1 for k, v in epochs._channel_type_idx.items() for val in v if k!='eeg'])
+        assert non_eeg_channels == 1
 
         ### Checking baseline correction is fine
         if not epochs.baseline:
@@ -177,7 +180,9 @@ class LoadEEG:
         all_times = times.copy()
         
         ### Transforming to numpy array
-        epochs_array = epochs.get_data()
+        epochs_array = epochs.get_data(
+                                       copy=False,
+                                       )
         assert epochs_array.shape[1] == 128
 
         ### Scaling 
