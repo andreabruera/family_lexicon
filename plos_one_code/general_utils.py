@@ -454,13 +454,7 @@ def prepare_folder(args):
 
     out_path = os.path.join(
                             'results', 
-                            args.experiment_id, 
-                            args.data_kind, 
                             args.analysis,
-                            '{}_{}'.format(args.mapping_model, args.evaluation_method),
-                            args.mapping_direction,
-                            '{}ms'.format(args.temporal_resolution),
-                            'average_{}'.format(args.average),
                             args.semantic_category_one,
                             args.semantic_category_two,
                              )

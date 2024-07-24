@@ -9,8 +9,8 @@ message = lambda item : 'python3 main.py --analysis {} --input_target_model {} -
 models = [
           'xlm-roberta-large',
           'w2v_sentence',
-          #'word_length',
-          #'orthography',
+          'word_length',
+          'orthography',
           ]
 
 categories = [
@@ -24,7 +24,7 @@ categories_two = [
                   'all',
                   ]
 plots = [
-         ' ', 
+         #' ', 
          ' --plot'
          ]
 

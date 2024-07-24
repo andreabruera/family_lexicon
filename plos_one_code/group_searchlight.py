@@ -13,6 +13,7 @@ import multiprocessing
 
 from scipy import stats
 from matplotlib import pyplot
+from matplotlib.colors import LinearSegmentedColormap
 from tqdm import tqdm
 
 from general_utils import prepare_file, prepare_folder, return_baseline
@@ -174,38 +175,60 @@ def group_searchlight(args):
         title='Searchlight for {} - {}'.format(args.input_target_model, args.semantic_category_one)
         title = '{} - {}, p<={}'.format(title, correction, significance)
 
-        if args.evaluation_method == 'correlation':
+        #if args.semantic_category_one == args.semantic_category_two:
+        #    #vmax = 0.1
+        #else:
+        #    #vmax = 0.075
+        if args.input_target_model in ['word_length', 'orthography']:
+            colors = {
+                      'word_length' : 'black',
+                      'orthography' : 'grey',
+                      }
+            color = colors[args.input_target_model]
+        else:
             if args.semantic_category_one == args.semantic_category_two:
-                if args.comparison:
-                    vmax = 0.05
-                else:
-                    vmax = 0.1
+                colors = {
+                          'xlm-roberta-large' : 'mediumseagreen',
+                          'w2v_sentence' : 'goldenrod',
+                          }
+                color = colors[args.input_target_model]
             else:
-                if args.comparison:
-                    vmax = 0.05
-                else:
-                    vmax = 0.12
-        else:
-            if args.comparison:
-                vmax = 0.1
-            else:
-                vmax = 0.2
+                if 'xlm' in args.input_target_model:
+                    if args.semantic_category_one == 'person':
+                        colors = {
+                                  'familiar' : 'turquoise',
+                                  'famous' : 'hotpink',
+                                  }
+                    elif args.semantic_category_one == 'place':
+                        colors = {
+                                  'familiar' : 'royalblue',
+                                  'famous' : 'mediumvioletred',
+                                  }
+                    else:
+                        raise RuntimeError
+                elif 'w2v' in args.input_target_model:
+                    if args.semantic_category_one == 'person':
+                        colors = {
+                                  'familiar' : 'mediumaquamarine',
+                                  'famous' : 'palevioletred',
+                                  }
+                    elif args.semantic_category_one == 'place':
+                        colors = {
+                                  'familiar' : 'mediumblue',
+                                  'famous' : 'mediumorchid',
+                                  }
+                    else:
+                        raise RuntimeError
+                color = colors[args.semantic_category_two]
+        cmap = LinearSegmentedColormap.from_list("mycmap", ['white', 'antiquewhite', color, color, color])
+        vmax = 0.1
 
-        ### TODO: changing colors of the plots
-        if args.input_target_model == 'coarse_category':
-            cmap = 'BuGn'
-        elif args.input_target_model == 'famous_familiar':
-            cmap = 'PuRd'
-        else:
-            cmap = 'PuRd'
-
-        evoked.plot_topomap(ch_type='eeg', 
+        fig = evoked.plot_topomap(ch_type='eeg', 
                             time_unit='s', 
                             times=evoked.times,
                             ncols='auto',
-                            nrows='auto', 
-                            vmax=vmax,
-                            vmin=0.02,
+                            nrows=1, 
+                            vlim=(0.01, vmax),
                             scalings={'eeg':.5}, 
                             cmap=cmap,
                             #cmap='Spectral_r',
@@ -219,8 +242,10 @@ def group_searchlight(args):
                                           ),
                             #colorbar=False,
                             size = 3.,
-                            title=title,
+                            #title=title,
                             )
+       # mne.viz.set_3d_title(fig, title, size=20)
+        fig.suptitle(title)
 
         ### building the file name
         f_name = '{}_{}_{}_spatial_{}_temporal_{}_{}.jpg'.format(
