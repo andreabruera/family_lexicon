@@ -26,8 +26,18 @@ class ExperimentInfo:
 
     def generate_eeg_paths(self, args):
         eeg_paths = dict()
+        ### fix
+        pres_subs = list()
+        for f in os.listdir(os.path.join('results', 'searchlight', 'all', 'all')):
+            if 'xlm' not in f:
+                continue
+            sub = int(f.split('_')[1])
+            pres_subs.append(sub)
 
-        for s in range(1, self.subjects+1):
+        missing_subs = [s for s in range(1, self.subjects+1) if s not in pres_subs]
+
+        #for s in range(1, self.subjects+1):
+        for s in missing_subs:
 
             fold = 'derivatives'
             sub_path = os.path.join(

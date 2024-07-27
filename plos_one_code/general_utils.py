@@ -1,5 +1,4 @@
 import argparse
-import geopy
 import mne
 import numpy
 import os
@@ -7,7 +6,6 @@ import re
 import scipy
 import sklearn
 
-from geopy import distance
 from matplotlib import pyplot
 from mne import stats
 

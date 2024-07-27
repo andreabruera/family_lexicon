@@ -78,35 +78,3 @@ else:
             else:
                 with multiprocessing.Pool(processes=processes) as pool:
                     pool.map(searchlight_two, [(args, experiment, n, searchlight_clusters, places_and_times) for n in range(1, experiment.subjects+1)])
-
-            '''
-            electrode_indices = [searchlight_clusters.neighbors[center] for center in range(128)]
-
-            places_and_times = list(itertools.product(electrode_indices, searchlight_clusters.relevant_times))
-
-            for n in tqdm(range(1, experiment.subjects+1)):
-
-                all_eeg, comp_vectors, eeg, experiment, file_path = prepare_data((args, n))
-
-                results_dict = dict()
-
-                ### each place_time separately
-                if args.debugging:
-                    for place_time in places_and_times:
-                        res = searchlight((args, all_eeg, comp_vectors, eeg, experiment, place_time, searchlight_clusters)) 
-                        results_dict[(res[0], res[1])] = res[2]
-
-                ### multiprocessing within one subject
-                else:
-                    #processes = 2
-                    with multiprocessing.Pool(processes=processes) as pool:
-                        results_list = pool.map(searchlight, [(args, all_eeg, comp_vectors, eeg, experiment, place_time, searchlight_clusters) for place_time in places_and_times])
-                        pool.close()
-                        pool.join()
-                    ### reordering results
-                    for res in results_list:
-                        results_dict[(res[0], res[1])] = res[2]
-
-                ### writing to files
-                write_searchlight(all_eeg, file_path, results_dict, searchlight_clusters)
-            '''
