@@ -74,7 +74,7 @@ else:
 
             if args.debugging:
                 for n in tqdm(range(1, experiment.subjects+1)):
-                    res = searchlight_two((args, experiment, n, searchlight_clusters, places_and_times)) 
+                    res = searchlight_two((args, experiment, n, searchlight_clusters, places_and_times))
             else:
                 with multiprocessing.Pool(processes=processes) as pool:
                     pool.map(searchlight_two, [(args, experiment, n, searchlight_clusters, places_and_times) for n in range(1, experiment.subjects+1)])

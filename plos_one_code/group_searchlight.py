@@ -16,7 +16,7 @@ from matplotlib import pyplot
 from matplotlib.colors import LinearSegmentedColormap
 from tqdm import tqdm
 
-from general_utils import prepare_file, prepare_folder, return_baseline
+from general_utils import prepare_file, prepare_folder, read_color, return_baseline
 from io_utils import ExperimentInfo, LoadEEG
 from searchlight import SearchlightClusters
 
@@ -28,7 +28,7 @@ def group_searchlight(args):
 
     ### comparing models
     if args.comparison:
-        models = ['xlm-roberta-large_individuals', args.input_target_model]
+        models = ['xlm-roberta-large', args.input_target_model]
         assert models[0] != models[1]
         collector = dict()
         for m in models:
@@ -61,12 +61,12 @@ def group_searchlight(args):
 
                 all_subjects.append(electrodes)
 
-            random_baseline = return_baseline(args) 
+            random_baseline = return_baseline(args)
             all_subjects = numpy.array(all_subjects) - random_baseline
             ### dissimilarity - i.e. 1-corr
             collector[m] = numpy.ones(shape=all_subjects.shape) - all_subjects
         ### dissimilarity distance
-        all_subjects = collector[m] - collector['xlm-roberta-large_individuals']
+        all_subjects = collector[m] - collector['xlm-roberta-large']
 
     ### simply plotting one model
     else:
@@ -85,6 +85,7 @@ def group_searchlight(args):
             out_file, language_agnostic = prepare_file(args, n)
 
             input_file = os.path.join(input_folder, out_file)
+            print(input_file)
 
             assert os.path.exists(input_file)
             with open(input_file, 'r') as i:
@@ -102,7 +103,7 @@ def group_searchlight(args):
 
             all_subjects.append(electrodes)
 
-        random_baseline = return_baseline(args) 
+        random_baseline = return_baseline(args)
         all_subjects = numpy.array(all_subjects) - random_baseline
     print(max(all_subjects.flatten()))
 
@@ -121,7 +122,7 @@ def group_searchlight(args):
     assert avged_subjects.shape == original_shape
 
     for significance in [
-                        main_sig, 
+                        main_sig,
                         # strongly significant
                         #main_sig*0.1,
                         #main_sig*0.01,
@@ -148,7 +149,7 @@ def group_searchlight(args):
         if args.searchlight_temporal_radius == 'large':
             sfreq = 10
         elif args.searchlight_temporal_radius == 'medium':
-            sfreq = 20 
+            sfreq = 20
         elif args.searchlight_temporal_radius == 'small':
             sfreq = 40
         info = mne.create_info(
@@ -174,98 +175,64 @@ def group_searchlight(args):
         correction = 'corrected' if args.corrected else 'uncorrected'
         title='Searchlight for {} - {}'.format(args.input_target_model, args.semantic_category_one)
         title = '{} - {}, p<={}'.format(title, correction, significance)
-
-        #if args.semantic_category_one == args.semantic_category_two:
-        #    #vmax = 0.1
-        #else:
-        #    #vmax = 0.075
-        if args.input_target_model in ['word_length', 'orthography']:
-            colors = {
-                      'word_length' : 'black',
-                      'orthography' : 'grey',
-                      }
-            color = colors[args.input_target_model]
-        else:
-            if args.semantic_category_one == args.semantic_category_two:
-                colors = {
-                          'xlm-roberta-large' : 'mediumseagreen',
-                          'w2v_sentence' : 'goldenrod',
-                          }
-                color = colors[args.input_target_model]
-            else:
-                if 'xlm' in args.input_target_model:
-                    if args.semantic_category_one == 'person':
-                        colors = {
-                                  'familiar' : 'turquoise',
-                                  'famous' : 'hotpink',
-                                  }
-                    elif args.semantic_category_one == 'place':
-                        colors = {
-                                  'familiar' : 'royalblue',
-                                  'famous' : 'mediumvioletred',
-                                  }
-                    else:
-                        raise RuntimeError
-                elif 'w2v' in args.input_target_model:
-                    if args.semantic_category_one == 'person':
-                        colors = {
-                                  'familiar' : 'mediumaquamarine',
-                                  'famous' : 'palevioletred',
-                                  }
-                    elif args.semantic_category_one == 'place':
-                        colors = {
-                                  'familiar' : 'mediumblue',
-                                  'famous' : 'mediumorchid',
-                                  }
-                    else:
-                        raise RuntimeError
-                color = colors[args.semantic_category_two]
-        cmap = LinearSegmentedColormap.from_list("mycmap", ['white', 'antiquewhite', color, color, color])
+        color_one, color_two, _ = read_color(args)
+        ### we create a cmap going sequentially from white -> color_one -> color_two
+        cmap = LinearSegmentedColormap.from_list("mycmap", [
+                                                            'white',
+                                                            color_one,
+                                                            color_two,
+                                                            ])
         vmax = 0.1
 
-        fig = evoked.plot_topomap(ch_type='eeg', 
-                            time_unit='s', 
+        fig = evoked.plot_topomap(ch_type='eeg',
+                            time_unit='s',
                             times=evoked.times,
                             ncols='auto',
-                            nrows=1, 
+                            nrows=1,
                             vlim=(0.01, vmax),
-                            scalings={'eeg':.5}, 
+                            scalings={'eeg':1.},
                             cmap=cmap,
-                            #cmap='Spectral_r',
                             mask=reshaped_p<=significance,
                             mask_params=dict(
-                                          marker='o', 
-                                          markerfacecolor='black', 
+                                          marker='o',
+                                          markerfacecolor='black',
                                           markeredgecolor='black',
-                                          linewidth=0, 
-                                          markersize=4,
+                                          linewidth=0,
+                                          markersize=1.,
                                           ),
-                            #colorbar=False,
+                            sensors=False,
+                            contours=3,
                             size = 3.,
-                            #title=title,
                             )
-       # mne.viz.set_3d_title(fig, title, size=20)
         fig.suptitle(title)
 
         ### building the file name
         f_name = '{}_{}_{}_spatial_{}_temporal_{}_{}.jpg'.format(
-                                      args.input_target_model, 
-                                      args.semantic_category_one, 
+                                      args.input_target_model,
+                                      args.semantic_category_one,
                                       args.semantic_category_two,
                                       args.searchlight_spatial_radius,
                                       args.searchlight_temporal_radius,
-                                      correction, 
+                                      correction,
                                       )
 
         if not language_agnostic:
             f_name = f_name.replace(args.input_target_model, '{}_{}'.format(args.input_target_model, args.language))
         if args.comparison:
-            f_name = f_name.replace('.jpg', '_comparison.jpg')
+            #f_name = f_name.replace('.jpg', '_comparison.jpg')
+            f_name = 'xlm-w2v-comparison_{}_{}_spatial_{}_temporal_{}_{}.jpg'.format(
+                                      args.semantic_category_one,
+                                      args.semantic_category_two,
+                                      args.searchlight_spatial_radius,
+                                      args.searchlight_temporal_radius,
+                                      correction,
+                                      )
         f_name = os.path.join(plot_path, f_name)
-        print(f_name)
         pyplot.savefig(f_name, dpi=600)
         pyplot.savefig(f_name.replace('jpg', 'svg'), dpi=600)
+        print(f_name)
         pyplot.clf()
+        pyplot.close()
 
         txt_path = f_name.replace('jpg', 'txt')
         with open(txt_path, 'w') as o:

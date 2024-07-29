@@ -1,7 +1,7 @@
 import numpy
 import os
 import re
-import syllables
+#import syllables
 
 from io_utils import LoadEEG
 
@@ -65,7 +65,7 @@ def load_vectors(args, experiment, n):
         vectors = minus_one_one_norm(vectors.items())
 
     # contextualized
-    elif args.input_target_model in [ 
+    elif args.input_target_model in [
                                # contextualized
                                'xlm-roberta-large',
                                # context-specific static
@@ -73,10 +73,10 @@ def load_vectors(args, experiment, n):
                                ]:
         dataset_marker = 'entity_sentences_all_vectors'
         file_path = os.path.join(
-                               'models', 
+                               'models',
                                'exp_{}_{}_{}_{}.tsv'.format(
-                                                  args.experiment_id, 
-                                                  args.input_target_model, 
+                                                  args.experiment_id,
+                                                  args.input_target_model,
                                                   args.language,
                                                   dataset_marker
                                                   )
@@ -87,7 +87,7 @@ def load_vectors(args, experiment, n):
             lines = [l.strip().split('\t') for l in i.readlines()][1:]
         #vectors = {l[1] : numpy.array(l[2:], dtype=numpy.float64) for l in lines if int(l[0]) in [n, 'all']}
         vectors = {l[1] : numpy.array(l[2:], dtype=numpy.float64) for l in lines if l[1] in names and l[0] in ['{}'.format(n), 'all']}
-           
+
         for k, v in vectors.items():
             #print(v.shape)
             assert v.shape in [

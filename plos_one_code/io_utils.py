@@ -9,7 +9,7 @@ import random
 class ExperimentInfo:
 
     def __init__(self, args, subject=1):
-        
+
         self.experiment_id = args.experiment_id
         self.analysis = args.analysis
         self.mapping_model = args.mapping_model
@@ -26,18 +26,8 @@ class ExperimentInfo:
 
     def generate_eeg_paths(self, args):
         eeg_paths = dict()
-        ### fix
-        pres_subs = list()
-        for f in os.listdir(os.path.join('results', 'searchlight', 'all', 'all')):
-            if 'xlm' not in f:
-                continue
-            sub = int(f.split('_')[1])
-            pres_subs.append(sub)
 
-        missing_subs = [s for s in range(1, self.subjects+1) if s not in pres_subs]
-
-        #for s in range(1, self.subjects+1):
-        for s in missing_subs:
+        for s in range(1, self.subjects+1):
 
             fold = 'derivatives'
             sub_path = os.path.join(
@@ -47,6 +37,7 @@ class ExperimentInfo:
                                     'sub-{:02}_task-namereadingimagery_eeg-epo.fif.gz'.format(s)
                                     )
 
+            print(sub_path)
             assert os.path.exists(sub_path) == True
             eeg_paths[s] = sub_path
         return eeg_paths
@@ -99,8 +90,8 @@ class ExperimentInfo:
         general_response_times = dict()
         accuracies = dict()
         for sub, stim, t, acc, sem, fam in zip(
-                                full_log['subject'], 
-                                full_log['trial_type'], 
+                                full_log['subject'],
+                                full_log['trial_type'],
                                 full_log['response_time'],
                                 full_log['accuracy'],
                                 full_log['semantic_domain'],
@@ -148,7 +139,7 @@ class ExperimentInfo:
         return all_combs
 
 class LoadEEG:
-   
+
     def __init__(self, args, experiment, subject, ceiling=False):
 
         self.subject = subject
@@ -165,8 +156,8 @@ class LoadEEG:
         frequencies = dict()
         coll_data_dict = collections.defaultdict(list)
         epochs = mne.read_epochs(
-                               self.data_path, 
-                               preload=True, 
+                               self.data_path,
+                               preload=True,
                                verbose=False
                                )
         ### Restricting data to EEG
@@ -188,14 +179,14 @@ class LoadEEG:
         tmax = 1.2
         times = epochs.times
         all_times = times.copy()
-        
+
         ### Transforming to numpy array
         epochs_array = epochs.get_data(
                                        copy=False,
                                        )
         assert epochs_array.shape[1] == 128
 
-        ### Scaling 
+        ### Scaling
         epochs_array = mne.decoding.Scaler(
                                         epochs.info,
                                         #scalings='median',
@@ -232,8 +223,8 @@ class LoadEEG:
         print(
                 'subject {} - Min-max amount of available ERPs: {} - median&std of max across stimuli: {}, {}'.format(
                        self.subject,
-                       min_value_to_use, 
-                       numpy.median(list(stimuli_values.values())), 
+                       min_value_to_use,
+                       numpy.median(list(stimuli_values.values())),
                        numpy.std(list(stimuli_values.values())))
              )
 
@@ -245,8 +236,8 @@ class LoadEEG:
         for k, v in full_data_dict.items():
             ### averaging
             averaged_v = numpy.average(
-                                       random.sample(v.tolist(), 
-                                       k=stimuli_values[k]), 
+                                       random.sample(v.tolist(),
+                                       k=stimuli_values[k]),
                                        axis=0
                                        )
             assert averaged_v.shape == v[0].shape

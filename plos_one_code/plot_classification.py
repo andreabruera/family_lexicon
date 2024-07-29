@@ -10,8 +10,7 @@ from matplotlib import colors as mcolors
 from matplotlib import font_manager, pyplot
 from scipy import stats
 
-from general_utils import ColorblindPalette, colors_mapper, prepare_file, prepare_folder, read_colors, return_baseline
-#from plotting.plot_violins import plot_violins
+from general_utils import prepare_file, prepare_folder, read_color, return_baseline
 
 
 def check_statistical_significance(args, setup_data, times):
@@ -27,7 +26,7 @@ def check_statistical_significance(args, setup_data, times):
     upper_indices = [t_i for t_i, t in enumerate(times) if t>upper_limit]
 
     relevant_indices = [t_i for t_i, t in enumerate(times) if (t>=lower_limit and t<=upper_limit)]
-    print([t for t_i, t in enumerate(times) if (t>=lower_limit and t<=upper_limit)])
+    #print([t for t_i, t in enumerate(times) if (t>=lower_limit and t<=upper_limit)])
     setup_data = setup_data[:, relevant_indices]
     ### TFCE correction using 1 time-point window
     ### following Leonardelli & Fairhall 2019, checking only in the range 100-750ms
@@ -45,7 +44,7 @@ def check_statistical_significance(args, setup_data, times):
             adj[i, min(setup_data.shape[-1]-1, i+window)] = 1
     adj = scipy.sparse.coo_matrix(adj)
     tfce = mne.stats.permutation_cluster_1samp_test(
-                                                 setup_data-random_baseline, 
+                                                 setup_data-random_baseline,
                                                  tail=1, \
                                                  adjacency=adj, \
                                                  threshold=dict(start=0, step=0.2))
@@ -76,7 +75,7 @@ def read_files(args, subjects):
         out_file, language_agnostic = prepare_file(args, sub)
 
         file_path = os.path.join(out_path, out_file)
-        
+
         if not os.path.exists(file_path):
             print('missing: {}'.format(file_path))
             continue
@@ -108,69 +107,29 @@ def plot_classification(args):
     # Setting font properties
 
     # Using Helvetica as a font
-    font_folder = '../../../fonts/'
+    font_folder = '../../fonts/'
     font_dirs = [font_folder, ]
     font_files = font_manager.findSystemFonts(fontpaths=font_dirs)
     for p in font_files:
         font_manager.fontManager.addfont(p)
     matplotlib.rcParams['font.family'] = 'Helvetica LT Std'
 
-    if args.input_target_model in ['word_length', 'orthography']:
-        colors = {
-                  'word_length' : 'k',
-                  'orthography' : 'silver',
-                  }
-        color = colors[args.input_target_model]
-    else:
-        if args.semantic_category_one == args.semantic_category_two:
-            colors = {
-                      'xlm-roberta-large' : 'mediumseagreen',
-                      'w2v_sentence' : 'goldenrod',
-                      }
-            color = colors[args.input_target_model]
-        else:
-            if 'xlm' in args.input_target_model:
-                if args.semantic_category_one == 'person':
-                    colors = {
-                              'familiar' : 'paleturquoise',
-                              'famous' : 'lightpink',
-                              }
-                elif args.semantic_category_one == 'place':
-                    colors = {
-                              'familiar' : 'steelblue',
-                              'famous' : 'mediumvioletred',
-                              }
-                else:
-                    raise RuntimeError
-            elif 'w2v' in args.input_target_model:
-                if args.semantic_category_one == 'person':
-                    colors = {
-                              'familiar' : 'mediumaquamarine',
-                              'famous' : 'palevioletred',
-                              }
-                elif args.semantic_category_one == 'place':
-                    colors = {
-                              'familiar' : 'mediumblue',
-                              'famous' : 'mediumorchid',
-                              }
-                else:
-                    raise RuntimeError
-            color = colors[args.semantic_category_two]
+    _, __, color = read_color(args)
 
     SMALL_SIZE = 23
     MEDIUM_SIZE = 25
     BIGGER_SIZE = 27
     # controls default text sizes
-    pyplot.rc('font', size=SMALL_SIZE)          
+    pyplot.rc('font', size=SMALL_SIZE)
     # fontsize of the axes title
-    pyplot.rc('axes', titlesize=SMALL_SIZE)     
+    pyplot.rc('axes', titlesize=SMALL_SIZE)
     # fontsize of the x and y labels
-    pyplot.rc('axes', labelsize=MEDIUM_SIZE)    
+    pyplot.rc('axes', labelsize=MEDIUM_SIZE)
     # fontsize of the tick labels
-    pyplot.rc('xtick', labelsize=SMALL_SIZE)    
-    pyplot.rc('ytick', labelsize=SMALL_SIZE)    
+    pyplot.rc('xtick', labelsize=SMALL_SIZE)
+    pyplot.rc('ytick', labelsize=SMALL_SIZE)
     # fontsize of the figure title
-    pyplot.rc('figure', titlesize=BIGGER_SIZE)  
+    pyplot.rc('figure', titlesize=BIGGER_SIZE)
 
     ### Reading the files
     ### plotting one line at a time, nice and easy
@@ -248,7 +207,7 @@ def plot_classification(args):
     ax[1].spines['bottom'].set_visible(False)
     ax[1].get_xaxis().set_visible(False)
 
-    ### Setting p<=0.05 label in bold 
+    ### Setting p<=0.05 label in bold
     ax[1].set_yticks([0.15])
     ax[1].set_yticklabels(['p<=0.05'])
     labels = ax[1].get_yticklabels()
@@ -262,7 +221,7 @@ def plot_classification(args):
     label = 'RSA encoding - {}'.format(args.input_target_model)
 
     ### entities and correction
-    
+
     correction = 'corrected' if args.corrected else 'uncorrected'
     label = '{} - {}'.format(label, correction)
 
@@ -273,23 +232,33 @@ def plot_classification(args):
     sem_data = stats.sem(data, axis=0)
 
     ### Plotting the average
-    ax[0].plot(times, average_data, linewidth=1.,
-              color=color)
+    ax[0].plot(
+               times,
+               average_data,
+               linewidth=2.,
+               color=color,
+               )
 
     ### Plotting the SEM
-    ax[0].fill_between(times, average_data-sem_data, \
-                       average_data+sem_data, \
-                       alpha=0.05, color=color)
-    
-    ### Plotting statistically significant time points
-    ax[0].scatter([times[t] for t in sig_indices], \
-               [numpy.average(data, axis=0)[t] \
-                    for t in sig_indices], \
-                    color='white', \
-                    edgecolors='black', \
-                    s=20., linewidth=.5)
+    ax[0].fill_between(
+                       times,
+                       average_data-sem_data,
+                       average_data+sem_data,
+                       alpha=0.1,
+                       color=color,
+                       )
 
-    ### Plotting the legend in 
+    ### Plotting statistically significant time points
+    ax[0].scatter(
+                  [times[t] for t in sig_indices],
+                  [numpy.average(data, axis=0)[t] for t in sig_indices],
+                  color='white',
+                  edgecolors='black',
+                  s=20.,
+                  linewidth=.5,
+                  )
+
+    ### Plotting the legend in
     ### a separate figure below
     line_counter = 1
     step = int(len(times)/7)
@@ -307,9 +276,14 @@ def plot_classification(args):
     if line_counter == 4:
         x_text = .5
         y_text = 0.1
-    ax[1].scatter([times[t] for t in sig_indices], \
-               [p_height for t in sig_indices], \
-                    s=60., linewidth=.5, color=color)
+    ax[1].scatter(
+                  [times[t] for t in sig_indices],
+                  [p_height for t in sig_indices],
+                  s=60.,
+                  linewidth=.5,
+                  edgecolors='white',
+                  color=color,
+                  )
     ax[1].scatter(x_text, y_text, \
                   s=180., color=color, \
                   label=label, alpha=1.,\
@@ -323,7 +297,7 @@ def plot_classification(args):
                             args.input_target_model,
                             args.semantic_category_one,
                             args.semantic_category_two,
-                            args.data_kind, 
+                            args.data_kind,
                             '{}ms'.format(args.temporal_resolution),
                             args.average,
                             correction,
